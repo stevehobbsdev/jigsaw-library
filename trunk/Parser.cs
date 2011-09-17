@@ -14,10 +14,17 @@ namespace Diggins.Jigsaw
         public static List<Node> Parse(string input, Rule r)
         {
             var state = new ParserState() { input = input, pos = 0 };
-            if (!r.Match(state))
-                return null;
-            else
+            try
+            {
+                if (!r.Match(state))
+                    throw new Exception("Rule failed to match");
                 return state.nodes;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("An error occured while parsing: " + e.Message);
+                return null;
+            }
         }
     }
 

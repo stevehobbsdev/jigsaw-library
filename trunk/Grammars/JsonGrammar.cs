@@ -13,7 +13,7 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule True = Node(MatchString("true"));
         public static Rule False = Node(MatchString("false"));
         public static Rule Null = Node(MatchString("null"));
-        public static Rule UnicodeControlChar = Node(MatchString("\\u") + Repeat(4, HexDigit));
+        public static Rule UnicodeControlChar = Node(MatchString("\\u") + HexDigit + HexDigit + HexDigit + HexDigit);
         public static Rule ControlChar = Node(MatchChar('\\') + CharSet("\"\\/bfnt"));
         public static Rule PlainChar = Node(ExceptCharSet("\"\\"));
         public static Rule Char = Node(UnicodeControlChar | ControlChar | PlainChar);

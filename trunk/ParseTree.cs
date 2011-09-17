@@ -7,7 +7,7 @@ using System.Dynamic;
 
 namespace Diggins.Jigsaw
 {
-    public class Node
+    public class Node 
     {
         /// <summary>
         /// Default constructor.
@@ -138,38 +138,61 @@ namespace Diggins.Jigsaw
             }
         }
        
-        public IEnumerable<Node> GetNodes(string name)
+        /// <summary>
+        /// Returns all child nodes with the given label
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public IEnumerable<Node> GetNodes(string label)
         {
-            return Nodes.Where(n => n.Label == name);
+            return Nodes.Where(n => n.Label == label);
         }
 
-        public Node GetNode(string name)
+        /// <summary>
+        /// Returns the first child node with the given label.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Node GetNode(string label)
         {
-            return GetNodes(name).First();
+            return GetNodes(label).First();
         }
 
-        public Node this[string name]
+        /// <summary>
+        /// Returns the first child node with the given label.
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public Node this[string label]
         {
-            get { return GetNode(name); }
+            get { return GetNode(label); }
         }
 
+        /// <summary>
+        /// Returns the nth child node.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public Node this[int n]
         {
             get { return Nodes[n]; }
         }
 
+        /// <summary>
+        /// Returns the number of child nodes.
+        /// </summary>
         public int Count
         {
             get { return Nodes.Count; }
         }
 
-        public dynamic Dynamic 
+        /// <summary>
+        /// Returns a string representation. 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
         {
-            get
-            {
-                dynamic result = new ExpandoObject();
-                return result;
-            }
+            return String.Format("{0}:{1}", Label, Text);
         }
     }
 }

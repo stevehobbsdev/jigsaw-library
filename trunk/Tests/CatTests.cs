@@ -23,15 +23,15 @@ namespace Diggins.Jigsaw.Tests
         {
             Test("1");
             Test("1 2");
-            Test("1 2 Swap");
-            Test("3 4 Add");
-            Test("3 Dup");
-            Test("3 Dup Add");
-            Test("[1 2 3] MakeList");
-            Test("Nil");
-            Test("Nil 1 Cons");
-            Test("Nil 1 Cons 2 Cons");
-            Test("[1 2 3] MakeList Uncons");
+            Test("1 2 swap");
+            Test("3 4 add");
+            Test("3 dup");
+            Test("3 dup add");
+            Test("[1 2 3] list");
+            Test("nil");
+            Test("nil 1 cons");
+            Test("nil 1 cons 2 cons");
+            Test("[1 2 3] list uncons");
         }
     }
 }

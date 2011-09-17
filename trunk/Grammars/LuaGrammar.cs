@@ -6,7 +6,7 @@ using System.Text;
 namespace Diggins.Jigsaw.Grammars
 {
     /// <summary>
-    /// TODO: finish. Many rules are out of order, and the grammar has to be teste.
+    /// TODO: finish. Many rules are out of order, and the grammar has to be tested.
     /// http://www.lua.org/manual/5.1/manual.html#8
     /// </summary>
     class LuaGrammar : SharedGrammar

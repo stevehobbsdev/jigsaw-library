@@ -8,7 +8,7 @@ namespace Diggins.Jigsaw
 {
     class PrecedenceResolution
     {
-        public int Precendence(string op)
+        public static int Precendence(string op)
         {
             switch (op)
             {
@@ -59,18 +59,18 @@ namespace Diggins.Jigsaw
             }        
         }
 
-        public void SplitLongExpression(Node node, int pivot)
+        public static void SplitLongExpression(Node node, int pivot)
         {
-            Node left = new Node("Expression", node.Nodes.Take(pivot - 1).ToArray());
+            Node left = new Node("Expression", node.Nodes.Take(pivot).ToArray());
             Node right = new Node("Expression", node.Nodes.Skip(pivot + 1).ToArray());
-            AdjustBinaryExpression(left);
-            AdjustBinaryExpression(right);
-            node.Nodes = new List<Node>() { left, right };
+            SplitLongExpression(left);
+            SplitLongExpression(right);
+            node.Nodes = new List<Node>() { left, node[pivot], right };
         }
 
-        public void AdjustBinaryExpression(Node node)
+        public static void SplitLongExpression(Node node)
         {
-            if (node.Label != "Expression" || node.Count <= 3 || node[1].Label == "BinaryOp")
+            if (node.Label != "Expression" || node.Count <= 3)
                 return;
             
             // Long expressions should always have an odd number of nodes.
@@ -78,14 +78,12 @@ namespace Diggins.Jigsaw
 
             // Find the lowest priority operation 
             int pivot = 1;
-            for (int i = 5; i < node.Count; i += 2)
-            {
-                Debug.Assert(node[i].Label == "BinaryOp");
+            for (int i = 3; i < node.Count; i += 2)
                 if (Precendence(node[i].Text) < Precendence(node[pivot].Text))
                     pivot = i;
-            }
 
             SplitLongExpression(node, pivot);
+            Debug.Assert(node.Count == 3);
         }
     }
 }

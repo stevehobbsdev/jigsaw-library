@@ -19,12 +19,6 @@ namespace Diggins.Jigsaw.Tests
                 Console.WriteLine("Parsing suceeded");
         }
 
-        public static dynamic LambdaTest(string s)
-        {
-            var node = Parser.Parse(s, SExprGrammar.Lambda).First();
-            return SExprLambdaCompiler.NodeToLambda(node).Compile();
-        }
-
         public static void Test()
         {
             TestParse("a", SExprGrammar.Symbol);
@@ -50,16 +44,6 @@ namespace Diggins.Jigsaw.Tests
             TestParse("(c (a b))", SExprGrammar.SExpr);
             TestParse("(c (a 12) \"hello\")", SExprGrammar.SExpr);
             TestParse("(+ 1 2)", SExprGrammar.SExpr);
-            TestParse("(lambda())", SExprGrammar.Lambda);
-            TestParse("(lambda () )", SExprGrammar.Lambda);
-            TestParse("(lambda ( ) )", SExprGrammar.Lambda);
-            TestParse("(lambda (a) )", SExprGrammar.Lambda);
-            TestParse("(lambda (a) a)", SExprGrammar.Lambda);
-            TestParse("(lambda (a b) a)", SExprGrammar.Lambda);
-            TestParse("(lambda (a b) 12)", SExprGrammar.Lambda);
-            TestParse("(lambda (a b) (Add a b))", SExprGrammar.Lambda);
-
-            Console.WriteLine(LambdaTest("(lambda (a b) (Add a b))")(3, 4));
         }
     }
 }
