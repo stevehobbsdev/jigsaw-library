@@ -65,14 +65,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArithmeticEvaluator.cs" />
+    <Compile Include="EmbeddedLambdaCalculus.cs" />
     <Compile Include="Grammar.cs" />
+    <Compile Include="Grammars\CSharpLiteralsGrammar.cs" />
+    <Compile Include="Grammars\ILGrammar.cs" />
+    <Compile Include="Grammars\JavaScriptGrammar.cs" />
     <Compile Include="Grammars\LuaGrammar.cs" />
+    <Compile Include="Grammars\SchemeGrammar.cs" />
+    <Compile Include="ILEvaluator.cs" />
+    <Compile Include="ListFusion.cs" />
     <Compile Include="ParserState.cs" />
     <Compile Include="ParseTree.cs" />
     <Compile Include="Grammars\ArithmeticGrammar.cs" />
     <Compile Include="Grammars\CSharpExprGrammar.cs" />
     <Compile Include="DynamicExtensions.cs" />
-    <Compile Include="Evaluators\CSharpEvaluator.cs" />
     <Compile Include="Json.cs" />
     <Compile Include="List.cs" />
     <Compile Include="PrecedenceResolution.cs" />
@@ -85,12 +92,10 @@
     <Compile Include="Grammars\CSVGrammar.cs" />
     <Compile Include="Sandbox\DoxygenGrammar.cs" />
     <Compile Include="Sandbox\HtmlGrammar.cs" />
-    <Compile Include="Sandbox\ILGrammar.cs" />
     <Compile Include="Sandbox\JavaGrammar.cs" />
     <Compile Include="Sandbox\JavaScriptGrammar.cs" />
     <Compile Include="Grammars\CatGrammar.cs" />
     <Compile Include="Grammars\JsonGrammar.cs" />
-    <Compile Include="Sandbox\LuaGrammar.cs" />
     <Compile Include="Sandbox\PythonGrammar.cs" />
     <Compile Include="Sandbox\RTFGrammar.cs" />
     <Compile Include="Sandbox\ScalaGrammar.cs" />
@@ -103,9 +108,12 @@
     <Compile Include="Grammars\SExprGrammar.cs" />
     <Compile Include="Sandbox\TabDelimitedGrammar.cs" />
     <Compile Include="Sandbox\XmlGrammar.cs" />
-    <Compile Include="SExprLambdaCompiler.cs" />
+    <Compile Include="SchemeCompiler.cs" />
+    <Compile Include="Tests\ArithmeticTests.cs" />
     <Compile Include="Tests\CatTests.cs" />
+    <Compile Include="Tests\ILTests.cs" />
     <Compile Include="Tests\JsonTests.cs" />
+    <Compile Include="Tests\SchemeTests.cs" />
     <Compile Include="Tests\SExprTests.cs" />
     <Compile Include="Tests\UnifierTests.cs" />
     <Compile Include="Unifier.cs" />

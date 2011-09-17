@@ -18,12 +18,12 @@ namespace Diggins.Jigsaw
 
         static object AddTest(object a, object b)
         {
-            return Primitives.Add(a, b);
+            return Primitives.add(a, b);
         }
 
         static void ETreeTest()
         {
-            Expression<Func<object, object, object>> e = (object a, object b) => Primitives.Add(a, b);
+            Expression<Func<object, object, object>> e = (object a, object b) => Primitives.add(a, b);
             dynamic f = e.Compile();
             Console.WriteLine(f(20, 22));
 
@@ -44,7 +44,9 @@ namespace Diggins.Jigsaw
             //JsonTests.Tests();
             //ETreeTest();
             //UnifierTests.Tests();
-            CatTests.Tests();
+            //CatTests.Tests();
+            //ArithmeticTests.Tests();
+            ILTests.Tests();
             Console.ReadKey();
         }
     }
