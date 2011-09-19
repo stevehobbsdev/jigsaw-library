@@ -46,7 +46,8 @@ namespace Diggins.Jigsaw
             //UnifierTests.Tests();
             //CatTests.Tests();
             //ArithmeticTests.Tests();
-            ILTests.Tests();
+            //ILTests.Tests();
+            LambdaCalculus.Test();
             Console.ReadKey();
         }
     }

@@ -21,29 +21,29 @@ namespace Diggins.Jigsaw.Tests
 
         public static void Test()
         {
-            TestParse("a", SExprGrammar.Symbol);
-            TestParse("a123", SExprGrammar.Symbol);
-            TestParse("_", SExprGrammar.Symbol);
-            TestParse(" ", SExprGrammar.WS);
-            TestParse("\t\t", SExprGrammar.WS);
-            TestParse("123", SExprGrammar.Integer);
-            TestParse("0", SExprGrammar.Integer);
-            TestParse("a", SExprGrammar.Atom);
-            TestParse("12", SExprGrammar.Atom);
-            TestParse("a", SExprGrammar.Term);
-            TestParse("12", SExprGrammar.Term);
-            TestParse("a)", SExprGrammar.Term);
-            TestParse(")", SExprGrammar.Term);
-            TestParse("(a)", SExprGrammar.SExpr);
-            TestParse("( a)", SExprGrammar.SExpr);
-            TestParse("(a )", SExprGrammar.SExpr);
-            TestParse("( a )", SExprGrammar.SExpr);
-            TestParse("(a b)", SExprGrammar.SExpr);
-            TestParse("()", SExprGrammar.SExpr);
-            TestParse("((a b) c)", SExprGrammar.SExpr);
-            TestParse("(c (a b))", SExprGrammar.SExpr);
-            TestParse("(c (a 12) \"hello\")", SExprGrammar.SExpr);
-            TestParse("(+ 1 2)", SExprGrammar.SExpr);
+            TestParse("a", SExpressionGrammar.Symbol);
+            TestParse("a123", SExpressionGrammar.Symbol);
+            TestParse("_", SExpressionGrammar.Symbol);
+            TestParse(" ", SExpressionGrammar.WS);
+            TestParse("\t\t", SExpressionGrammar.WS);
+            TestParse("123", SExpressionGrammar.Integer);
+            TestParse("0", SExpressionGrammar.Integer);
+            TestParse("a", SExpressionGrammar.Atom);
+            TestParse("12", SExpressionGrammar.Atom);
+            TestParse("a", SExpressionGrammar.Term);
+            TestParse("12", SExpressionGrammar.Term);
+            TestParse("a)", SExpressionGrammar.Term);
+            TestParse(")", SExpressionGrammar.Term);
+            TestParse("(a)", SExpressionGrammar.SExpr);
+            TestParse("( a)", SExpressionGrammar.SExpr);
+            TestParse("(a )", SExpressionGrammar.SExpr);
+            TestParse("( a )", SExpressionGrammar.SExpr);
+            TestParse("(a b)", SExpressionGrammar.SExpr);
+            TestParse("()", SExpressionGrammar.SExpr);
+            TestParse("((a b) c)", SExpressionGrammar.SExpr);
+            TestParse("(c (a b))", SExpressionGrammar.SExpr);
+            TestParse("(c (a 12) \"hello\")", SExpressionGrammar.SExpr);
+            TestParse("(+ 1 2)", SExpressionGrammar.SExpr);
         }
     }
 }

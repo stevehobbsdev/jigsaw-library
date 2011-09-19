@@ -11,9 +11,9 @@ namespace Diggins.Jigsaw.Grammars
     /// </summary>
     class SchemeGrammar : SharedGrammar
     {
-        public static Rule Symbol = SExprGrammar.Symbol;
-        public static Rule Atom = SExprGrammar.Atom;
-        public static Rule SExpr = SExprGrammar.SExpr;
+        public static Rule Symbol = SExpressionGrammar.Symbol;
+        public static Rule Atom = SExpressionGrammar.Atom;
+        public static Rule SExpr = SExpressionGrammar.SExpr;
 
         public static Rule Quote = CharToken('`') + SExpr;
         public static Rule Primitive = Recursive(() => Lambda | If | Let | Begin | Define);

@@ -7,8 +7,8 @@ namespace Diggins.Jigsaw.Grammars
 {
     public class CatGrammar : SharedGrammar
     {
-        public static Rule Atom = SExprGrammar.Atom;
-        public static Rule Symbol = SExprGrammar.Symbol;
+        public static Rule Atom = SExpressionGrammar.Atom;
+        public static Rule Symbol = SExpressionGrammar.Symbol;
 
         public static Rule Term = Node(Recursive(() => Define | Atom | Quotation) + WS);
         public static Rule Terms = Node(ZeroOrMore(Term));

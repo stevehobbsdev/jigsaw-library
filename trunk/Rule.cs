@@ -29,8 +29,6 @@ namespace Diggins.Jigsaw
 
         public bool Match(ParserState state)
         {
-            // TIP: Set conditional breakpoints here during debugging
-            // where Name == "xxx" to trace specific rules. 
             return InternalMatch(state);
         }
 

@@ -8,44 +8,8 @@ using System.Reflection;
 
 namespace Diggins.Jigsaw
 {
-    public class LispEvaluator
+    public class SchemeCompiler : ExpressionCompiler
     {
-        public class Context
-        {
-            public string Name;
-            public Expression Expression;
-            public Context Tail;
-            public Context AddContext(string name, Expression expr)
-            {
-                return new Context { Name = name, Expression = expr, Tail = this };
-            }
-            public IEnumerable<Context> Contexts
-            {
-                get
-                {
-                    for (Context c = this; c != null; c = c.Tail)
-                        yield return c;
-                }
-            }
-            public Expression Find(string name)
-            {
-                var r = Contexts.FirstOrDefault(c => c.Name == name);
-                if (r == null) throw new Exception("Name does not exist in context: " + name);
-                return r.Expression;
-            }
-        }
-
-        public static void CheckNode(Node node, string name)
-        {
-            if (node.Label != name)
-                throw new Exception(String.Format("Expected node of type {0} not {1}", name, node.Label));
-        }
-
-        public static Expression Noop
-        {
-            get { return Expression.Call(null, typeof(Primitives).GetMethod("noop")); }
-        }
-
         public static ParameterExpression NodeToParam(Node node)
         {
             CheckNode(node, "Symbol");
@@ -96,7 +60,7 @@ namespace Diggins.Jigsaw
             foreach (var binding in node[0].Nodes) {
                 var name = binding[0].Text;
                 var val = ToExpr(binding[1], context);
-                exprs.Add(Expression.Assign(context.Find(name), val));
+                exprs.Add(Expression.Assign((Expression)context.Find(name), val));
             }
             exprs.Add(ToExpr(node[1], context));
             return Expression.Block(exprs);
@@ -109,7 +73,7 @@ namespace Diggins.Jigsaw
                 case "SExpr":
                     return SExprToExpr(node, context);
                 case "Symbol":
-                    return context.Find(node.Text);
+                    return (Expression)context.Find(node.Text);
                 case "Term":
                     return ToExpr(node[0], context);
                 case "Atom":
