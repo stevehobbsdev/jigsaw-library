@@ -12,7 +12,7 @@ namespace Diggins.Jigsaw.Tests
         public static void Test(string input, params object[] args)
         {
             var node = Parser.Parse(input, SchemeGrammar.Lambda).First();
-            var r = LispEvaluator.NodeToLambda(node).Compile();
+            var r = SchemeCompiler.NodeToLambda(node).Compile();
         }
 
         public static void Tests()
