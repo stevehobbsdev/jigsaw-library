@@ -26,10 +26,10 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule RecStatement = Recursive(() => Statement);
         public static Rule Block = Node(CharToken('{') + ZeroOrMore(Statement) + CharToken('}'));
         public static Rule VarDecl = Node(Opt(Keyword("var")) + Name + Eq + Expression + Eos);
-        public static Rule While = Node(Keyword("while") + Paranthesize(Expression) + Block);
-        public static Rule For = Node(Keyword("for") + Paranthesize(VarDecl + Expression + WS + Eos + Expression + WS) + Block);
+        public static Rule While = Node(Keyword("while") + Parenthesize(Expression) + Block);
+        public static Rule For = Node(Keyword("for") + Parenthesize(VarDecl + Expression + WS + Eos + Expression + WS) + Block);
         public static Rule Else = Node(Keyword("else") + Block);
-        public static Rule If = Node(Keyword("if") + Paranthesize(Expression) + Block + ZeroOrMore(Opt(Else)));
+        public static Rule If = Node(Keyword("if") + Parenthesize(Expression) + Block + ZeroOrMore(Opt(Else)));
         public static Rule Statement = Node(Block | For | While | If | VarDecl);
     }
 }

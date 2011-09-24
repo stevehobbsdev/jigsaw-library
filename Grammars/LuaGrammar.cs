@@ -22,12 +22,12 @@ namespace Diggins.Jigsaw.Grammars
 	    public static Rule UnaryOp = Node(MatchStringSet("- not #"));
 	    public static Rule BinaryOp = Node(MatchStringSet(".. < <= > >= == ~= and or + - * / ^ %"));
         public static Rule Ellipsis = StringToken("...");
-        public static Rule ParanExpr = Node(Paranthesize(Expr));
-	    public static Rule Args = Node(Paranthesize(Opt(ExprList)) | Table | String); 
+        public static Rule ParanExpr = Node(Parenthesize(Expr));
+	    public static Rule Args = Node(Parenthesize(Opt(ExprList)) | Table | String); 
 	    public static Rule FunCall = Node(PrefixExpr + Opt(CharToken(':') + Name));
         public static Rule PrefixExpr = Node(Var | FunCall | ParanExpr);
         public static Rule Params = Node((NameList + Opt(Comma + Ellipsis)) | Ellipsis);
-        public static Rule FuncBody = Node(Paranthesize(Opt(Params)) + Block + WS + Keyword("end"));	    
+        public static Rule FuncBody = Node(Parenthesize(Opt(Params)) + Block + WS + Keyword("end"));	    
 	
 	    public static Rule FieldSep = Comma | Eos;
         public static Rule IndexedField = Node(CharToken('[') + Expr + WS + CharToken(']') + Eq + Expr);

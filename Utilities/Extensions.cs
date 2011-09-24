@@ -15,8 +15,21 @@ namespace Diggins.Jigsaw
     public delegate dynamic DynamicFunc3(dynamic a0, dynamic a1, dynamic a2);
     public delegate dynamic DynamicMethod(dynamic self, params dynamic[] args);
 
-    public static class DynamicExtensions
+    public static class Extensions
     {
+        public static char LastChar(this string self)
+        {
+            return self[self.Length - 1];
+        }
+        
+        public static string StripQuotes(this string self)
+        {
+            if (self.Length > 1 && ((self[0] == '"' && self.LastChar() == '"') || (self[0] == '\'' && self.LastChar() == '\'')))
+                return self.Substring(1, self.Length - 2);
+            else
+                return self;
+        }
+
         public static ExpandoObject AddField(this ExpandoObject self, string name, dynamic value)
         {
             var d = self as IDictionary<string, object>;

@@ -18,13 +18,13 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule Quote = CharToken('`') + SExpr;
         public static Rule Primitive = Recursive(() => Lambda | If | Let | Begin | Define);
         public static Rule Term = (Atom | Primitive | Quote);
-        public static Rule Terms = ZeroOrMore(Term + WS);
-        public static Rule ParamList = Node(Paranthesize(ZeroOrMore(Symbol + WS)));
-        public static Rule Lambda = Node(Paranthesize(Keyword("lambda") + ParamList + Terms));
+        public static Rule Body = ZeroOrMore(Term + WS);
+        public static Rule ParamList = Node(Parenthesize(ZeroOrMore(Symbol + WS)));
+        public static Rule Lambda = Node(Parenthesize(Keyword("lambda") + ParamList + Body));
         public static Rule Begin = Node(Keyword("begin") + OneOrMore(Term));
         public static Rule Define = Node(Keyword("define") + Symbol + WS + Term);
-        public static Rule VarBinding = Node(Paranthesize(Symbol + WS + Term));
-        public static Rule Let = Node(Keyword("let") + Paranthesize(ZeroOrMore(VarBinding)) + Term);
-        public static Rule If = Node(Paranthesize(Keyword("if") + Term + Term + Opt(Term)));
+        public static Rule VarBinding = Node(Parenthesize(Symbol + WS + Term));
+        public static Rule Let = Node(Keyword("let") + Parenthesize(ZeroOrMore(VarBinding)) + Term);
+        public static Rule If = Node(Parenthesize(Keyword("if") + Term + Term + Opt(Term)));
     }
 }

@@ -11,7 +11,7 @@ namespace Diggins.Jigsaw.Tests
     {
         public static void Test(string s)
         {
-            var dm = ILEvaluator.Eval(s);
+            var dm = ILCompiler.Eval(s);
             var r = dm.Invoke(null, new object[] { });
             Console.WriteLine(r);
             //OpCodes.Du

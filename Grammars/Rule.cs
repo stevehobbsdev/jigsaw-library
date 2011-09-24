@@ -99,7 +99,15 @@ namespace Diggins.Jigsaw
 
         protected override bool InternalMatch(ParserState state)
         {
-            var node = new Node(state.pos, Name, state.input);
+            Node node;
+            if (state.GetCachedResult(this, out node))
+            {
+                state.pos = node.End;
+                state.nodes.Add(node);
+                return true;
+            }
+
+            node = new Node(state.pos, Name, state.input);
             var oldNodes = state.nodes;
             state.nodes = new List<Node>();
             if (Child.Match(state))
@@ -108,11 +116,13 @@ namespace Diggins.Jigsaw
                 node.Nodes = state.nodes;
                 oldNodes.Add(node);
                 state.nodes = oldNodes;
+                state.CacheResult(this, node);
                 return true;
             }
             else
             {
                 state.nodes = oldNodes;
+                state.CacheResult(this, null);
                 return false;
             }
         }

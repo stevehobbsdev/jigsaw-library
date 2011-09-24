@@ -22,21 +22,6 @@ namespace Diggins.Jigsaw
             return node.Nodes.Select(n => NodeToParam(n)).ToArray();            
         }
 
-        public static Object NodeToValue(Node node)
-        {
-            switch (node.Label)
-            {
-                case "Integer":
-                    return int.Parse(node.Text);
-                case "Float":
-                    return double.Parse(node.Text);
-                case "String":
-                    return node.Text.Substring(1, node.Text.Length - 2);
-                default:
-                    throw new Exception(String.Format("Node {0} of type {1} is not a recognized value", node.Text, node.Label));
-            }
-        }
-
         public static Expression SExprToExpr(Node node, Context context)
         {
             var terms = node[0];
@@ -70,6 +55,12 @@ namespace Diggins.Jigsaw
         {
             switch (node.Label)
             {
+                case "Integer":
+                    return Expression.Constant(int.Parse(node.Text));
+                case "Float":
+                    return Expression.Constant(double.Parse(node.Text));
+                case "String":
+                    return Expression.Constant(node.Text.Substring(1, node.Text.Length - 2));
                 case "SExpr":
                     return SExprToExpr(node, context);
                 case "Symbol":
@@ -81,7 +72,7 @@ namespace Diggins.Jigsaw
                 case "Lambda":
                     return NodeToLambda(node, context);
                 case "Begin":
-                    return Expression.Block(node.Nodes.Select(n => ToExpr(n, context)));
+                    return Expression.Block(node.Nodes.Select(n => ToExpr(n, context)));                
                 case "Let":
                     return LetToExpr(node, context);
                 case "If":
@@ -89,12 +80,12 @@ namespace Diggins.Jigsaw
                         ? Expression.IfThenElse(ToExpr(node[0], context), ToExpr(node[1], context), ToExpr(node[2], context))
                         : Expression.IfThen(ToExpr(node[0], context), ToExpr(node[1], context));
                 default:
-                    return Expression.Constant(NodeToValue(node));
+                    throw new Exception("Unrecognized node type " + node.Label);
             }
         }
 
         public static Expression NodeToBody(Node node, Context context)
-        {
+        {           
             CheckNode(node, "Terms");
             if (node.Count == 0)
                 return Noop;

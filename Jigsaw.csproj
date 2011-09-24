@@ -51,6 +51,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.JScript" />
+    <Reference Include="Microsoft.VisualC" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -65,34 +67,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArithmeticEvaluator.cs" />
-    <Compile Include="Context.cs" />
-    <Compile Include="CSharpFunctionCompiler.cs" />
-    <Compile Include="Currying.cs" />
-    <Compile Include="EmbeddedLambdaCalculus.cs" />
-    <Compile Include="ExpressionCompiler.cs" />
-    <Compile Include="Grammar.cs" />
+    <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
+    <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
+    <Compile Include="Utilities\Context.cs" />
+    <Compile Include="Compilers\CSharpFunctionCompiler.cs" />
+    <Compile Include="Theory\Currying.cs" />
+    <Compile Include="Theory\EmbeddedLambdaCalculus.cs" />
+    <Compile Include="Compilers\ExpressionCompiler.cs" />
+    <Compile Include="Grammars\Grammar.cs" />
     <Compile Include="Grammars\CSharpLiteralsGrammar.cs" />
     <Compile Include="Grammars\ILGrammar.cs" />
     <Compile Include="Grammars\JavaScriptGrammar.cs" />
     <Compile Include="Grammars\LuaGrammar.cs" />
     <Compile Include="Grammars\SchemeGrammar.cs" />
-    <Compile Include="ILEvaluator.cs" />
-    <Compile Include="ListFusion.cs" />
-    <Compile Include="ParserState.cs" />
-    <Compile Include="ParseTree.cs" />
+    <Compile Include="Compilers\ILCompiler.cs" />
+    <Compile Include="Sandbox\ListFusion.cs" />
+    <Compile Include="Compilers\CodeDOMCompilers.cs" />
+    <Compile Include="Parsing\ParserState.cs" />
+    <Compile Include="Parsing\ParseTree.cs" />
     <Compile Include="Grammars\ArithmeticGrammar.cs" />
-    <Compile Include="Grammars\CSharpExpressionGrammar.cs" />
-    <Compile Include="DynamicExtensions.cs" />
-    <Compile Include="Json.cs" />
-    <Compile Include="List.cs" />
-    <Compile Include="PrecedenceResolution.cs" />
-    <Compile Include="PostfixCalculator.cs" />
-    <Compile Include="Rule.cs" />
+    <Compile Include="Grammars\CSharpExprGrammar.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Json.cs" />
+    <Compile Include="Utilities\List.cs" />
+    <Compile Include="Parsing\PrecedenceResolution.cs" />
+    <Compile Include="Evaluators\PostfixCalculator.cs" />
+    <Compile Include="Grammars\Rule.cs" />
     <Compile Include="Sandbox\CalculatorGrammar.cs" />
     <Compile Include="Sandbox\CGrammar.cs" />
     <Compile Include="Grammars\SharedGrammar.cs" />
-    <Compile Include="Sandbox\CSharpGrammar.cs" />
     <Compile Include="Sandbox\CssGrammar.cs" />
     <Compile Include="Grammars\CSVGrammar.cs" />
     <Compile Include="Sandbox\DoxygenGrammar.cs" />
@@ -104,25 +107,29 @@
     <Compile Include="Sandbox\PythonGrammar.cs" />
     <Compile Include="Sandbox\RTFGrammar.cs" />
     <Compile Include="Sandbox\ScalaGrammar.cs" />
-    <Compile Include="CatEvaluator.cs" />
-    <Compile Include="Parser.cs" />
+    <Compile Include="Evaluators\CatEvaluator.cs" />
+    <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Sandbox\PPGrammar.cs" />
-    <Compile Include="Primitives.cs" />
+    <Compile Include="Utilities\Primitives.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Grammars\SExpressionGrammar.cs" />
     <Compile Include="Sandbox\TabDelimitedGrammar.cs" />
     <Compile Include="Sandbox\XmlGrammar.cs" />
-    <Compile Include="SchemeCompiler.cs" />
-    <Compile Include="SKCalculus.cs" />
+    <Compile Include="Compilers\SchemeCompiler.cs" />
+    <Compile Include="Evaluators\SECDMachine.cs" />
+    <Compile Include="Theory\SKCalculus.cs" />
     <Compile Include="Tests\ArithmeticTests.cs" />
     <Compile Include="Tests\CatTests.cs" />
+    <Compile Include="Tests\CodeDOMCompilerTests.cs" />
     <Compile Include="Tests\ILTests.cs" />
     <Compile Include="Tests\JsonTests.cs" />
     <Compile Include="Tests\SchemeTests.cs" />
     <Compile Include="Tests\SExprTests.cs" />
     <Compile Include="Tests\UnifierTests.cs" />
-    <Compile Include="Unifier.cs" />
+    <Compile Include="Theory\EmbeddedScheme.cs" />
+    <Compile Include="Utilities\Unifier.cs" />
+    <Compile Include="Utilities\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

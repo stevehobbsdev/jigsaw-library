@@ -10,7 +10,7 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule Name = Node(Identifier);
         public static Rule DotName = Node(Name + ZeroOrMore(Dot + Name));
         public static Rule Arg = Node(DotName + WS + Opt(Name + WS));
-        public static Rule ArgList = Node(Paranthesize(CommaDelimited(Arg)));
+        public static Rule ArgList = Node(Parenthesize(CommaDelimited(Arg)));
         public static Rule Label = Node(Name + CharToken(':'));
         public static Rule Literal = Node(CSharpLiteralsGrammar.Literal);
         public static Rule Operand = Node(Name + WS + (Name | Literal));
