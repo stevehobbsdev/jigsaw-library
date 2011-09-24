@@ -11,11 +11,11 @@ namespace Diggins.Jigsaw
 
         public dynamic Head { get; private set; }
             
-        public List Tail { get; private set; }
+        public dynamic Tail { get; private set; }
 
         public bool IsEmpty { get { return this == Empty; } }
-            
-        private List(dynamic head, List tail) 
+
+        private List(dynamic head, dynamic tail) 
         {
             Head = head;
             Tail = tail;
@@ -57,7 +57,7 @@ namespace Diggins.Jigsaw
             return Cons(hd, Empty);
         }
             
-        public static List Cons(Object hd, List tl)
+        public static List Cons(Object hd, Object tl)
         {
             if (tl == null) throw new ArgumentNullException();
             return new List(hd, tl);

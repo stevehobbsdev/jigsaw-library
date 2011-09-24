@@ -39,7 +39,21 @@ namespace Diggins.Jigsaw
         public static Lambda LtEq       = x => y => IsZero(Sub(x)(y));
         public static Lambda Gt         = x => y => LtEq(y)(x);
         public static Lambda Eq         = x => y => And(LtEq(x)(y))(LtEq(y)(x));
+        
+        /// <summary>
+        /// Self-application combinator (Mockingbird)
+        /// </summary>
         public static Lambda M          = x => x(x);
+
+        /// <summary>
+        /// Fixed-point combinator appropriate only for lazy or call-by-name evaluation 
+        /// </summary>
+        public static Lambda Y          = f => M(x => f(M(x)));
+
+        /// <summary>
+        /// Fixed-point combinator appropriate for call by value evaluation (e.g. the one used by C#).
+        /// </summary>
+        public static Lambda Z          = f => M(x => f(y => M(x)(y)));
 
         public static Lambda Write(string s) { return (x) => { Console.WriteLine(s); return x; }; }
 

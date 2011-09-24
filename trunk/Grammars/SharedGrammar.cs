@@ -33,7 +33,7 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule Eq = CharToken('=');
         public static Rule Dot = CharToken('.');
         public static Rule Keyword(string s) { return MatchString(s) + Not(LetterOrDigit) + WS; } 
-        public static Rule Paranthesize(Rule r) { return CharToken('(') + r + WS + CharToken(')'); }
+        public static Rule Parenthesize(Rule r) { return CharToken('(') + r + WS + CharToken(')'); }
 
         static SharedGrammar() { InitGrammar(typeof(SharedGrammar)); }
     }

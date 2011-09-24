@@ -47,7 +47,10 @@ namespace Diggins.Jigsaw
             //CatTests.Tests();
             //ArithmeticTests.Tests();
             //ILTests.Tests();
-            LambdaCalculus.Test();
+            //LambdaCalculus.Test();
+            //EmbeddedScheme.Tests();
+            //CodeDOMCompilerTests.Tests();
+            CSharpFunctionCompilerTests.Tests();
             Console.ReadKey();
         }
     }
