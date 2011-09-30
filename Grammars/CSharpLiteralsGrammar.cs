@@ -19,7 +19,7 @@ namespace Diggins.Jigsaw.Grammars
         new public static Rule Float = Node(SharedGrammar.Float + Opt(FloatSuffix));
 
         public static Rule EscapedChar = Node(MatchChar('\\') + CharSet("\\bnrt'\""));
-        public static Rule CharContent = Node(EscapedChar | AnyChar);
+        public static Rule CharContent = Node(EscapedChar | ExceptCharSet("\""));
         public static Rule String = Node(MatchChar('"') + ZeroOrMore(CharContent) + MatchChar('"'));
         public static Rule Char = MatchChar('\'') + CharContent + MatchChar('\'');
         public static Rule Bool = Node(Keyword("true") | Keyword("false"));

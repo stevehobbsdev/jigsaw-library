@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Diggins.Jigsaw
 {
@@ -44,5 +45,52 @@ namespace Diggins.Jigsaw
         public static dynamic type(dynamic a) { return a.GetType(); }
         public static void print(dynamic a) { Console.Write(a); }
         public static dynamic tostring(dynamic a) { return a.ToString(); } 
+        
+        public static MethodInfo GetMethod(string s)
+        {
+            return typeof(Primitives).GetMethod(s);
+        }
+
+        public static string UnaryOperatorToMethodName(string s)
+        {
+            switch(s)
+            {
+                case "-": return "negative";
+                case "!": return "not";
+                case "~": return "complement";
+                default: throw new Exception("Not a recognized unary operator " + s);
+            }
+        }
+
+        public static string BinaryOperatorToMethodName(string s)
+        {
+            switch (s)
+            {
+                case "+": return "add";
+                case "-": return "subtract";
+                case "*": return "multiply";
+                case "/": return "divide";
+                case "%": return "modulo";
+                case ">>": return "shl";
+                case "<<": return "shr";
+                case ">": return "gt";
+                case "<": return "lt";
+                case ">=": return "gteq";
+                case "<=": return "lteq";
+                case "==": return "eq";
+                case "!=": return "neq";
+                case "||": return "or";
+                case "&&": return "and";
+                case "^": return "xor";
+                case "|": return "bit_or";
+                case "&": return "bit_nand";
+                default: throw new Exception("Not a recognized operator");
+            }
+        }
+
+        public static MethodInfo GetMethodFromBinaryOperator(string s)
+        {
+            return GetMethod(BinaryOperatorToMethodName(s));
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule Symbol = Node(FirstSymbolChar + ZeroOrMore(NextSymbolChar));
         public static Rule String = Node(MatchChar('"') + AdvanceWhileNot(MatchChar('"')) + MatchChar('"'));
         public static Rule Atom = Node(Integer | Float | String | Symbol);
-        public static Rule SExpr = Node(CharToken('(') + Terms + WS + CharToken(')'));
+        public static Rule SExpr = Node(CharToken('(') + Terms + CharToken(')'));
 
         static SExpressionGrammar() { InitGrammar(typeof(SExpressionGrammar)); }
     }

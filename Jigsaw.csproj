@@ -69,6 +69,8 @@
   <ItemGroup>
     <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
     <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
+    <Compile Include="Tests\GrammarTest.cs" />
+    <Compile Include="Theory\Circuits.cs" />
     <Compile Include="Utilities\Context.cs" />
     <Compile Include="Compilers\CSharpFunctionCompiler.cs" />
     <Compile Include="Theory\Currying.cs" />
@@ -110,6 +112,7 @@
     <Compile Include="Evaluators\CatEvaluator.cs" />
     <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Sandbox\PPGrammar.cs" />
+    <Compile Include="Utilities\ObserverPattern.cs" />
     <Compile Include="Utilities\Primitives.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
