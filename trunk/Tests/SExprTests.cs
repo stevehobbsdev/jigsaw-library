@@ -11,21 +11,16 @@ namespace Diggins.Jigsaw.Tests
     {
         public static void TestParse(string s, Rule r)
         {
-            Console.WriteLine("Parsing: " + s);
-            var nodes = Parser.Parse(s, r);
-            if (nodes == null)
-                Console.WriteLine("Parsing failed!");
-            else
-                Console.WriteLine("Parsing suceeded");
+            GrammarTest.Test(s, r);
         }
 
-        public static void Test()
+        public static void Tests()
         {
             TestParse("a", SExpressionGrammar.Symbol);
             TestParse("a123", SExpressionGrammar.Symbol);
             TestParse("_", SExpressionGrammar.Symbol);
-            TestParse(" ", SExpressionGrammar.WS);
-            TestParse("\t\t", SExpressionGrammar.WS);
+            //TestParse(" ", SExpressionGrammar.WS);
+            //TestParse("\t\t", SExpressionGrammar.WS);
             TestParse("123", SExpressionGrammar.Integer);
             TestParse("0", SExpressionGrammar.Integer);
             TestParse("a", SExpressionGrammar.Atom);
@@ -33,7 +28,7 @@ namespace Diggins.Jigsaw.Tests
             TestParse("a", SExpressionGrammar.Term);
             TestParse("12", SExpressionGrammar.Term);
             TestParse("a)", SExpressionGrammar.Term);
-            TestParse(")", SExpressionGrammar.Term);
+            TestParse("()", SExpressionGrammar.Term);
             TestParse("(a)", SExpressionGrammar.SExpr);
             TestParse("( a)", SExpressionGrammar.SExpr);
             TestParse("(a )", SExpressionGrammar.SExpr);

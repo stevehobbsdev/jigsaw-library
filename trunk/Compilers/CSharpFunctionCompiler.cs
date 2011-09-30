@@ -23,11 +23,16 @@ namespace Diggins.Jigsaw
             return expr.Compile();
         }
 
+        public Type ToType(Node node)
+        {
+            return Utilities.GetType(node.Text.Trim());
+        }
+        
         public Expression ToExpr(Node n)
         {
             switch (n.Label)
             {
-                case "Expression":
+                case "Expr":
                     return ToExpr(n[0]);
                 case "TertiaryExpr":
                     if (n.Count > 1)
@@ -35,8 +40,10 @@ namespace Diggins.Jigsaw
                     else
                         return ToExpr(n[0]);    
                 case "BinaryExpr":
-                    // TODO: deal with binary operations
-                    return ToExpr(n[0]);
+                    if (n.Count > 1)
+                        return CreateBinaryExpression(n[1].Text, ToExpr(n[0]), ToExpr(n[2]));
+                    else
+                        return ToExpr(n[0]);
                 case "UnaryExpr":
                     {
                         var x = ToExpr(n[0]);
@@ -90,20 +97,33 @@ namespace Diggins.Jigsaw
                 case "NewExpr":
                     throw new NotImplementedException();
                 case "Identifier":
-                    return (Expression)Context[n.Text];
+                    return Lookup(n.Text);
                 case "Integer":
                     return Expression.Constant(Int32.Parse(n.Text));
                 case "Float":
                     return Expression.Constant(Double.Parse(n.Text));
                 case "String":
                     return Expression.Constant(n.Text.StripQuotes());
-                case "LambdaParam":
-                    if (n.Count > 1)
-                        return Expression.Parameter(Type.GetType(n[0].Text), n[1].Text);
-                    else
-                        return Expression.Parameter(typeof(Object), n[0].Text);
+                case "UntypedLambdaParam":
+                    return Expression.Parameter(typeof(Object), n[0].Text);
+                case "TypedLambdaParam":
+                    return Expression.Parameter(Utilities.GetType(n[0].Text), n[1].Text);
                 case "LambdaExpr":
-                    return Expression.Lambda(ToExpr(n[1]), n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>());
+                    if (n[1].Label == "Block")
+                        return CreateStatementLambda(n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>().ToArray(), () => ToExpr(n[1]));
+                    else
+                        return CreateExpressionLambda(n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>().ToArray(), () => ToExpr(n[1]));
+                case "Block":
+                    return ScopedExpr(() => Expression.Block(n.Nodes.Select(ToExpr)));
+                case "ExprStatement":
+                    return Expression.Block(ToExpr(n[0]));
+                case "ReturnStatement":
+                    if (n.Count > 0)
+                        return Expression.Return(GetReturnTarget());
+                    else
+                        return Expression.Return(GetReturnTarget(), ToExpr(n[0]));
+                case "Statement":
+                    return ToExpr(n[0]);
                 default:
                     throw new Exception("Node type not handled " + n.Label);
             }

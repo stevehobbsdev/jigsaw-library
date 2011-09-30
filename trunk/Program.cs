@@ -38,14 +38,13 @@ namespace Diggins.Jigsaw
 
         static void Main(string[] args)
         {
-            //SExprParser.Test();
+            ArithmeticTests.Tests();
+            SExprTests.Tests();
             //DynamicExtensions.Test();
-            //SExprTests.Test();
             //JsonTests.Tests();
             //ETreeTest();
             //UnifierTests.Tests();
             //CatTests.Tests();
-            //ArithmeticTests.Tests();
             //ILTests.Tests();
             //LambdaCalculus.Test();
             //EmbeddedScheme.Tests();

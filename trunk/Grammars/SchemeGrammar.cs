@@ -18,9 +18,9 @@ namespace Diggins.Jigsaw.Grammars
         public static Rule Quote = CharToken('`') + SExpr;
         public static Rule Primitive = Recursive(() => Lambda | If | Let | Begin | Define);
         public static Rule Term = (Atom | Primitive | Quote);
-        public static Rule Body = ZeroOrMore(Term + WS);
-        public static Rule ParamList = Node(Parenthesize(ZeroOrMore(Symbol + WS)));
-        public static Rule Lambda = Node(Parenthesize(Keyword("lambda") + ParamList + Body));
+        public static Rule Param = Node(Symbol);
+        public static Rule ParamList = Node(Parenthesize(ZeroOrMore(Param + WS)));
+        public static Rule Lambda = Node(Parenthesize(Keyword("lambda") + ParamList + Term));
         public static Rule Begin = Node(Keyword("begin") + OneOrMore(Term));
         public static Rule Define = Node(Keyword("define") + Symbol + WS + Term);
         public static Rule VarBinding = Node(Parenthesize(Symbol + WS + Term));

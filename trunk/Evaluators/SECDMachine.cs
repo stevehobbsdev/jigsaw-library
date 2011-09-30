@@ -110,8 +110,21 @@ namespace Diggins.Jigsaw
             Push(List.Empty, ref Env);
         }
 
-        public void RecursiveApply()
+        public void TailApply()
         {
+            List closure = Pop();
+            List paramlist = Pop();
+            Env = List.Cons(closure.Tail, Env.Tail);
+            Push(paramlist, ref Env);
+            Code = closure.Head;
+            Stack = List.Empty;
+        }
+
+        public void RecApply()
+        {
+            Push(Stack, ref Dump);
+            Push(Env, ref Dump);
+            Push(Code, ref Dump);
             List closure = Pop();
             List paramlist = Pop();
             Env = List.Cons(closure.Tail, Env.Tail);

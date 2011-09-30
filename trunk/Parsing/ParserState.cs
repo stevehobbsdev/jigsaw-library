@@ -11,7 +11,7 @@ namespace Diggins.Jigsaw
         public string input;
         public int pos;
         public List<Node> nodes = new List<Node>();
-        public Dictionary<int, Dictionary<Rule, Node>> cache = new Dictionary<int,Dictionary<Rule, Node>>();
+        private Dictionary<int, Dictionary<Rule, Node>> cache = new Dictionary<int,Dictionary<Rule, Node>>();
 
         public string Current
         {
@@ -40,13 +40,13 @@ namespace Diggins.Jigsaw
         {
             return String.Format("{0}/{1}", pos, input.Length);
         }
-        public void CacheResult(Rule rule, Node node)
+        public void CacheResult(Rule rule, int pos, Node node)
         {
             if (!cache.ContainsKey(pos)) 
                 cache.Add(pos, new Dictionary<Rule, Node>());
             var tmp = cache[pos];
-            Debug.Assert(!tmp.ContainsKey(rule));
-            tmp.Add(rule, node);
+            if (!tmp.ContainsKey(rule))
+                tmp.Add(rule, node);
         }
         public bool GetCachedResult(NodeRule rule, out Node node)
         {

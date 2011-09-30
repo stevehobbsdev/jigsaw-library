@@ -10,9 +10,9 @@ namespace Diggins.Jigsaw.Tests
     class SchemeTests
     {
         public static void Test(string input, params object[] args)
-        {
-            var node = Parser.Parse(input, SchemeGrammar.Lambda).First();
-            var r = SchemeCompiler.NodeToLambda(node).Compile();
+        {            
+            var r = SchemeCompiler.CompileLambda(input);
+            r.DynamicInvoke(args);
         }
 
         public static void Tests()

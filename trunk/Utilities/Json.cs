@@ -8,17 +8,6 @@ namespace Diggins.Jigsaw
 {
     public class JsonObject : DynamicObject
     {
-        class MyObject
-        {
-            public int x { get; set; }
-            public int y;
-        }
-
-        void f()
-        {
-            var x = new MyObject() { x = 13, y = 14 };
-        }
-
         ExpandoObject x = new ExpandoObject();
 
         public IDictionary<string, Object> AsDictionary
