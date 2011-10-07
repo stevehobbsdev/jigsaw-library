@@ -65,7 +65,7 @@ namespace Diggins.Jigsaw
             
         public static List Parse(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.SExpressionGrammar.SExpr);
+            var nodes = SExpressionGrammar.SExpr.Parse(s);
             if (nodes == null) 
                 throw new Exception("Invalid string format");
             var node = nodes[0];

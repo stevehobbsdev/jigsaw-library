@@ -7,8 +7,6 @@ using System.Dynamic;
 
 namespace Diggins.Jigsaw
 {
-    using Tests;
-
     class Program
     {
         static void Test(IDynamicMetaObjectProvider mop)
@@ -38,8 +36,8 @@ namespace Diggins.Jigsaw
 
         static void Main(string[] args)
         {
-            ArithmeticTests.Tests();
-            SExprTests.Tests();
+            //ArithmeticTests.Tests();
+            //SExprTests.Tests();
             //DynamicExtensions.Test();
             //JsonTests.Tests();
             //ETreeTest();
@@ -49,7 +47,10 @@ namespace Diggins.Jigsaw
             //LambdaCalculus.Test();
             //EmbeddedScheme.Tests();
             //CodeDOMCompilerTests.Tests();
-            CSharpFunctionCompilerTests.Tests();
+            //CSharpFunctionCompilerTests.Tests();
+            //CodeProjectArticleSnippets.Tests();
+            JSTests.Tests();
+            Console.WriteLine("And that's it. Press any key to go home ...");
             Console.ReadKey();
         }
     }

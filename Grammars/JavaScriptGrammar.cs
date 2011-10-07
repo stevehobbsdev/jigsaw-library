@@ -3,41 +3,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Diggins.Jigsaw.Grammars
+namespace Diggins.Jigsaw
 {
-    public class JavaScriptGrammar : JsonGrammar 
+    public class JavaScriptGrammar : JsonGrammar
     {
-        public static Rule RecExpr = Recursive(() => Expr);
-        public static Rule Args = Node(CommaDelimited(Expr));
-        public static Rule ArgList = CharToken('(') + Args + CharToken(')');
-        public static Rule Indexer = Node(CharToken('[') + RecExpr + CharToken(']'));
-        public static Rule Select = Node(CharToken('.') + Identifier);
-        public static Rule Inc = Node(MatchString("++"));
-        public static Rule Dec = Node(MatchString("--"));
-        public static Rule PostfixOp = Node(Inc | Dec | Indexer | ArgList | Select));
-        public static Rule PrefixOp = Node(MatchStringSet("++ -- ! - ~"));
-        public static Rule BinaryOp = Node(MatchStringSet(">>= <<= <= >= == != << >> += -= *= %= /= && || < > & | + - * % / ="));
-        public static Rule ParanthesizedExpr = Node(CharToken('(') + RecExpr + CharToken(')'));
-        public static Rule NewExpr = Node(Keyword("new") + UnaryExpr);
-        public static Rule LeafExpr = Node(ParanthesizedExpr | NewExpr | Identifier | Integer | Float | JsonGrammar.String);
-        public static Rule Prefixes = Node(ZeroOrMore(PrefixOp + WS));
-        public static Rule Postfixes = Node(ZeroOrMore(PostfixOp + WS));
-        public static Rule UnaryExpr = Node(Prefixes + WS + Postfixes);
-        public static Rule BinaryExpr = Node(UnaryExpr + Opt(BinaryOp + WS + RecExpr));
-        public static Rule Expr = Node(BinaryExpr + Opt(CharToken('?') + RecExpr + CharToken(':') + RecExpr));
+        public new static Rule Identifier = Node(SharedGrammar.Identifier);
 
+        public static Rule RecExpr = Recursive(() => Expr);
         public static Rule RecStatement = Recursive(() => Statement);
-        public static Rule Block = Node(CharToken('{') + ZeroOrMore(Statement) + CharToken('}'));
-        public static Rule VarDecl = Node(Opt(Keyword("var")) + Name + WS + Opt(Eq + Expr) + Eos);
-        public static Rule While = Node(Keyword("while") + Parenthesize(Expr) + Block);
-        public static Rule For = Node(Keyword("for") + Parenthesize(VarDecl + Expr + WS + Eos + Expr + WS) + Block);
-        public static Rule Else = Node(Keyword("else") + Block);
+
+        public static Rule ParamList = Node(Parenthesize(CommaDelimited(Identifier + WS)));
+        public static Rule NamedFunc = Node(Keyword("function") + Identifier + WS + ParamList + RecStatement);
+        public static Rule AnonFunc = Node(Keyword("function") + ParamList + RecStatement);
+        public static Rule Function = NamedFunc | AnonFunc;
+
+        public static Rule Args = Node(CommaDelimited(RecExpr));
+        public static Rule ArgList = Node(CharToken('(') + Args + CharToken(')'));
+        public static Rule Index = Node(CharToken('[') + RecExpr + CharToken(']'));
+        public static Rule Field = Node(CharToken('.') + Identifier);
+        public static Rule PrefixOp = Node(MatchStringSet("! - ~"));
+        public static Rule ParenExpr = Node(CharToken('(') + RecExpr + CharToken(')'));
+        public static Rule NewExpr = Node(Keyword("new") + RecExpr);
+        public static Rule LeafExpr = Node(ParenExpr | NewExpr | Function | Value | Identifier);
+        public static Rule PrefixExpr = Node(PrefixOp + Recursive(() => UnaryExpr));
+        public static Rule UnaryExpr = PrefixExpr | LeafExpr;
+        public static Rule PostfixOp = Node(Field | Index | ArgList);
+        public static Rule PostfixExpr = Node(UnaryExpr + WS + ZeroOrMore(PostfixOp));
+        public static Rule BinaryOp = Node(MatchStringSet("<= >= == != << >> && || < > & | + - * % /"));
+        public static Rule BinaryExpr = Node(UnaryExpr + Opt(BinaryOp + WS + RecExpr));
+        public static Rule AssignOp = Node(MatchStringSet("&&= ||= >>= <<= += -= *= %= /= &= |= ="));
+        public static Rule AssignExpr = Node((Identifier | PostfixExpr) + WS + AssignOp + WS + Recursive(() => AssignExpr));
+        public static Rule Expr = Node(BinaryExpr + Opt(CharToken('?') + RecExpr + CharToken(':') + RecExpr));
+        public static Rule Block = Node(CharToken('{') + ZeroOrMore(RecStatement) + CharToken('}'));
+        public static Rule VarDecl = Node(Keyword("var") + Identifier + WS + Opt(Eq + Expr) + Eos);
+        public static Rule While = Node(Keyword("while") + Parenthesize(Expr) + RecStatement);
+        public static Rule For = Node(Keyword("for") + Parenthesize(VarDecl + Expr + WS + Eos + Expr + WS) + RecStatement);
+        public static Rule Else = Node(Keyword("else") + RecStatement);
         public static Rule If = Node(Keyword("if") + Parenthesize(Expr) + Block + Opt(Else));
-        public static Rule ParamList = Node(Parenthesize(CommaDelimited(Name + WS)));
-        public static Rule NamedFunction = Node(Keyword("function") + Name + WS + ParamList + Block);
-        public static Rule AnonymousFunction = Node(Keyword("function") + ParamList + Block);
-        public static Rule Function = NamedFunction | AnonymousFunction;
-        public static Rule Statement = Node(Block | For | While | If | VarDecl | Function);
+        public static Rule Statement = Node(Block | For | While | If | VarDecl | Expr);
         public static Rule Script = Node(ZeroOrMore(Statement));
+
+        static JavaScriptGrammar()
+        {
+            InitGrammar(typeof(JavaScriptGrammar));
+        }
     }
 }

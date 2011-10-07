@@ -12,7 +12,7 @@ namespace Diggins.Jigsaw
     {
         public static Delegate CompileLambda(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.SchemeGrammar.Lambda);
+            var nodes = SchemeGrammar.Lambda.Parse(s);
             return CompileLambda(nodes[0]);
         }
 

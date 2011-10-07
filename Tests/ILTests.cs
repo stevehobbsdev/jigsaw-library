@@ -5,7 +5,7 @@ using System.Text;
 
 using System.Reflection.Emit;
 
-namespace Diggins.Jigsaw.Tests
+namespace Diggins.Jigsaw
 {
     public class ILTests
     {

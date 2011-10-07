@@ -11,7 +11,7 @@ namespace Diggins.Jigsaw
     {
         public static Delegate CompileLambda(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.CSharpExprGrammar.LambdaExpr);
+            var nodes = CSharpExprGrammar.LambdaExpr.Parse(s);
             return CompileLambda(nodes[0]);
         }
 
@@ -39,6 +39,8 @@ namespace Diggins.Jigsaw
                         return Expression.Condition(ToExpr(n[0]), ToExpr(n[1]), ToExpr(n[2]));
                     else
                         return ToExpr(n[0]);    
+                case "AssignExpr":
+
                 case "BinaryExpr":
                     if (n.Count > 1)
                         return CreateBinaryExpression(n[1].Text, ToExpr(n[0]), ToExpr(n[2]));
