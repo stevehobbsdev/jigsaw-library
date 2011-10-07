@@ -52,7 +52,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.JScript" />
-    <Reference Include="Microsoft.VisualC" />
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -68,15 +68,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
+    <Compile Include="Evaluators\JavaScriptEvaluator.cs" />
+    <Compile Include="Parsing\TreeTransformer.cs" />
+    <Compile Include="Parsing\TreeVisitor.cs" />
+    <Compile Include="Sandbox\LeftRecursion.cs" />
+    <Compile Include="Tests\CodeProjectArticleSnippets.cs" />
     <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
     <Compile Include="Tests\GrammarTest.cs" />
+    <Compile Include="Tests\JSTests.cs" />
     <Compile Include="Theory\Circuits.cs" />
     <Compile Include="Utilities\Context.cs" />
     <Compile Include="Compilers\CSharpFunctionCompiler.cs" />
     <Compile Include="Theory\Currying.cs" />
     <Compile Include="Theory\EmbeddedLambdaCalculus.cs" />
     <Compile Include="Compilers\ExpressionCompiler.cs" />
-    <Compile Include="Grammars\Grammar.cs" />
+    <Compile Include="Parsing\Grammar.cs" />
     <Compile Include="Grammars\CSharpLiteralsGrammar.cs" />
     <Compile Include="Grammars\ILGrammar.cs" />
     <Compile Include="Grammars\JavaScriptGrammar.cs" />
@@ -90,11 +96,11 @@
     <Compile Include="Grammars\ArithmeticGrammar.cs" />
     <Compile Include="Grammars\CSharpExprGrammar.cs" />
     <Compile Include="Utilities\Extensions.cs" />
-    <Compile Include="Utilities\Json.cs" />
+    <Compile Include="Evaluators\JsonObject.cs" />
     <Compile Include="Utilities\List.cs" />
     <Compile Include="Parsing\PrecedenceResolution.cs" />
     <Compile Include="Evaluators\PostfixCalculator.cs" />
-    <Compile Include="Grammars\Rule.cs" />
+    <Compile Include="Parsing\Rule.cs" />
     <Compile Include="Sandbox\CalculatorGrammar.cs" />
     <Compile Include="Sandbox\CGrammar.cs" />
     <Compile Include="Grammars\SharedGrammar.cs" />
@@ -103,14 +109,12 @@
     <Compile Include="Sandbox\DoxygenGrammar.cs" />
     <Compile Include="Sandbox\HtmlGrammar.cs" />
     <Compile Include="Sandbox\JavaGrammar.cs" />
-    <Compile Include="Sandbox\JavaScriptGrammar.cs" />
     <Compile Include="Grammars\CatGrammar.cs" />
     <Compile Include="Grammars\JsonGrammar.cs" />
     <Compile Include="Sandbox\PythonGrammar.cs" />
     <Compile Include="Sandbox\RTFGrammar.cs" />
     <Compile Include="Sandbox\ScalaGrammar.cs" />
     <Compile Include="Evaluators\CatEvaluator.cs" />
-    <Compile Include="Parsing\Parser.cs" />
     <Compile Include="Sandbox\PPGrammar.cs" />
     <Compile Include="Utilities\ObserverPattern.cs" />
     <Compile Include="Utilities\Primitives.cs" />

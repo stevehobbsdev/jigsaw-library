@@ -131,7 +131,7 @@ namespace Diggins.Jigsaw
 
         public static Stack<dynamic> Eval(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.CatGrammar.Terms);
+            var nodes = CatGrammar.Terms.Parse(s);
             if (nodes == null) throw new Exception("Invalid Cat program");
             return Eval(nodes[0]);
         }

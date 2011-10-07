@@ -194,6 +194,22 @@ namespace Diggins.Jigsaw
         {
             return String.Format("{0}:{1}", Label, Text);
         }
+
+        /// <summary>
+        /// Returns all the decenendant nodes.
+        /// </summary>
+        public IEnumerable<Node> Descendants
+        {
+            get
+            {
+                foreach (var n in Nodes)
+                {
+                    foreach (var d in n.Descendants)
+                        yield return d;
+                    yield return n;
+                }
+            }
+        }
     }
 }
 

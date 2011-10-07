@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Diggins.Jigsaw.Tests
+namespace Diggins.Jigsaw
 {
-    using Grammars;
-
     public class SExprTests
     {
         public static void TestParse(string s, Rule r)

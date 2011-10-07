@@ -6,22 +6,20 @@ using System.Diagnostics;
 
 using System.Dynamic;
 
-namespace Diggins.Jigsaw.Tests
+namespace Diggins.Jigsaw
 {
-    using Grammars;
-    
     public class JsonTests
     {
         public static void Test(string input, Rule r)
         {
-            var nodes = Parser.Parse(input, r);
+            var nodes = r.Parse(input);
             if (nodes == null)
                 throw new Exception("Parser failed");
             foreach (var n in nodes)
             {
                 if (n.Label == "Object")
                 {
-                    var d = JsonObject.JsonValueFromAst(n);
+                     var d = JsonObject.Eval(n);
                     var s = d.ToString();
                     Console.WriteLine(s);
                 }

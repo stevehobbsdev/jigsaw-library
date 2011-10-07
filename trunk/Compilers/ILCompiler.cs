@@ -135,7 +135,7 @@ namespace Diggins.Jigsaw
 
         public static System.Reflection.Emit.DynamicMethod Eval(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.ILGrammar.ILFunc);            
+            var nodes = ILGrammar.ILFunc.Parse(s);            
             return Eval(nodes[0]);
         }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Linq.Expressions;
 
-namespace Diggins.Jigsaw.Tests
+namespace Diggins.Jigsaw
 {
     public class CSharpFunctionCompilerTests
     {
@@ -30,42 +30,42 @@ namespace Diggins.Jigsaw.Tests
 
         public static void Tests()
         {
-            TestParse("42", Grammars.CSharpExprGrammar.Integer);
-            TestParse("42", Grammars.CSharpExprGrammar.Literal);
-            TestParse("42", Grammars.CSharpExprGrammar.LeafExpr);
-            TestParse("42", Grammars.CSharpExprGrammar.UnaryExpr);
-            TestParse("42", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("42", Grammars.CSharpExprGrammar.TertiaryExpr);
-            TestParse("42", Grammars.CSharpExprGrammar.Expr);
+            TestParse("42", CSharpExprGrammar.Integer);
+            TestParse("42", CSharpExprGrammar.Literal);
+            TestParse("42", CSharpExprGrammar.LeafExpr);
+            TestParse("42", CSharpExprGrammar.UnaryExpr);
+            TestParse("42", CSharpExprGrammar.BinaryExpr);
+            TestParse("42", CSharpExprGrammar.TertiaryExpr);
+            TestParse("42", CSharpExprGrammar.Expr);
 
-            TestParse("x", Grammars.CSharpExprGrammar.Identifier);
-            TestParse("x", Grammars.CSharpExprGrammar.LeafExpr);
-            TestParse("x", Grammars.CSharpExprGrammar.UnaryExpr);
-            TestParse("x", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("x", Grammars.CSharpExprGrammar.TertiaryExpr);
-            TestParse("x", Grammars.CSharpExprGrammar.Expr);
+            TestParse("x", CSharpExprGrammar.Identifier);
+            TestParse("x", CSharpExprGrammar.LeafExpr);
+            TestParse("x", CSharpExprGrammar.UnaryExpr);
+            TestParse("x", CSharpExprGrammar.BinaryExpr);
+            TestParse("x", CSharpExprGrammar.TertiaryExpr);
+            TestParse("x", CSharpExprGrammar.Expr);
 
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.String);
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.LeafExpr);
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.UnaryExpr);
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.TertiaryExpr);
-            TestParse("\"hello world\"", Grammars.CSharpExprGrammar.Expr);
-            TestParse("() => \"hello world\"", Grammars.CSharpExprGrammar.LambdaExpr);
+            TestParse("\"hello world\"", CSharpExprGrammar.String);
+            TestParse("\"hello world\"", CSharpExprGrammar.LeafExpr);
+            TestParse("\"hello world\"", CSharpExprGrammar.UnaryExpr);
+            TestParse("\"hello world\"", CSharpExprGrammar.BinaryExpr);
+            TestParse("\"hello world\"", CSharpExprGrammar.TertiaryExpr);
+            TestParse("\"hello world\"", CSharpExprGrammar.Expr);
+            TestParse("() => \"hello world\"", CSharpExprGrammar.LambdaExpr);
 
-            TestParse("x", Grammars.CSharpExprGrammar.LambdaParam);
-            TestParse("x", Grammars.CSharpExprGrammar.LambdaParams);
-            TestParse("()", Grammars.CSharpExprGrammar.LambdaParams);
-            TestParse("(x)", Grammars.CSharpExprGrammar.LambdaParams);
-            TestParse("() => x", Grammars.CSharpExprGrammar.LambdaExpr);
-            TestParse("x => x", Grammars.CSharpExprGrammar.LambdaExpr);
+            TestParse("x", CSharpExprGrammar.LambdaParam);
+            TestParse("x", CSharpExprGrammar.LambdaParams);
+            TestParse("()", CSharpExprGrammar.LambdaParams);
+            TestParse("(x)", CSharpExprGrammar.LambdaParams);
+            TestParse("() => x", CSharpExprGrammar.LambdaExpr);
+            TestParse("x => x", CSharpExprGrammar.LambdaExpr);
 
-            TestParse("1 + 2", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("(1)", Grammars.CSharpExprGrammar.ParenthesizedExpr);
-            TestParse("(1 + 2)", Grammars.CSharpExprGrammar.ParenthesizedExpr);
-            TestParse("(1 + 2) * 3", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("1 + (2 * 3)", Grammars.CSharpExprGrammar.BinaryExpr);
-            TestParse("3 * (1 + 2)", Grammars.CSharpExprGrammar.BinaryExpr);
+            TestParse("1 + 2", CSharpExprGrammar.BinaryExpr);
+            TestParse("(1)", CSharpExprGrammar.ParenthesizedExpr);
+            TestParse("(1 + 2)", CSharpExprGrammar.ParenthesizedExpr);
+            TestParse("(1 + 2) * 3", CSharpExprGrammar.BinaryExpr);
+            TestParse("1 + (2 * 3)", CSharpExprGrammar.BinaryExpr);
+            TestParse("3 * (1 + 2)", CSharpExprGrammar.BinaryExpr);
 
             Expression<Func<string,string>> f = (s) => s + "world";
 

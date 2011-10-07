@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Diggins.Jigsaw.Grammars
+namespace Diggins.Jigsaw
 {
     /// <summary>
     /// TODO: finish. Many rules are out of order, and the grammar has to be tested.

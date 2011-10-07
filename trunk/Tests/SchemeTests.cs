@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Diggins.Jigsaw.Tests
+namespace Diggins.Jigsaw
 {
-    using Grammars;
-
     class SchemeTests
     {
         public static void Test(string input, params object[] args)
