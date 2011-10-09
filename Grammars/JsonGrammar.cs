@@ -21,10 +21,8 @@ namespace Diggins.Jigsaw
         public static Rule String = Node(MatchChar('"') + StringChars + MatchChar('"'));
         public static Rule Value = Node(Recursive(() => String | Number | Object | Array | True | False | Null));
         public static Rule Pair = Node(MatchChar('"') + StringChars + MatchChar('"') + WS + CharToken(':') + Value + WS);
-        public static Rule Members = CommaDelimited(Pair);
-        public static Rule Elements = CommaDelimited(Value);
-        public static Rule Array = Node(CharToken('[') + Elements + WS + CharToken(']'));
-        public static Rule Object = Node(CharToken('{') + Members + WS + CharToken('}'));
+        public static Rule Array = Node(CharToken('[') + CommaDelimited(Value) + WS + CharToken(']'));
+        public static Rule Object = Node(CharToken('{') + CommaDelimited(Pair) + WS + CharToken('}'));
         static JsonGrammar() { InitGrammar(typeof(JsonGrammar)); }
     }
 }

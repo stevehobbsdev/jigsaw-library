@@ -48,8 +48,8 @@ namespace Diggins.Jigsaw
             //EmbeddedScheme.Tests();
             //CodeDOMCompilerTests.Tests();
             //CSharpFunctionCompilerTests.Tests();
-            //CodeProjectArticleSnippets.Tests();
-            JSTests.Tests();
+            //JavaScriptTests.Tests();
+            CodeProjectArticleSnippets.Tests();
             Console.WriteLine("And that's it. Press any key to go home ...");
             Console.ReadKey();
         }
