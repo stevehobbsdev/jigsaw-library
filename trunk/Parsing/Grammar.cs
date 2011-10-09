@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Diggins.Jigsaw
@@ -54,7 +55,7 @@ namespace Diggins.Jigsaw
 
         public static Rule ZeroOrMore(Rule r)
         {
-            return new StarRule(r);
+            return new ZeroOrMoreRule(r);
         }
 
         public static Rule OneOrMore(Rule r)
@@ -79,7 +80,7 @@ namespace Diggins.Jigsaw
 
         public static Rule MatchChar(char c)
         {
-            return MatchChar(x => x == c);
+            return MatchChar(x => x == c).SetName(c.ToString());
         }
 
         public static Rule MatchRegex(Regex re)
@@ -90,21 +91,21 @@ namespace Diggins.Jigsaw
         public static Rule CharSet(string s)
         {
             if (String.IsNullOrEmpty(s)) throw new ArgumentException();
-            return MatchChar(c => s.Contains(c));
+            return MatchChar(c => s.Contains(c)).SetName(String.Format("[{0}]", s));
         }
 
         public static Rule CharRange(char a, char b)
         {
-            return MatchChar(c => (c >= a) && (c <= b));
+            return MatchChar(c => (c >= a) && (c <= b)).SetName(String.Format("[{0}..{1}]", a, b));
         }
 
         public static Rule ExceptCharSet(string s)
         {
             if (String.IsNullOrEmpty(s)) throw new ArgumentException();
-            return MatchChar(c => !s.Contains(c));
+            return MatchChar(c => !s.Contains(c)).SetName(String.Format("[{0}]", s)); ;
         }
 
-        public static Rule AnyChar = MatchChar(c => true);
+        public static Rule AnyChar = MatchChar(c => true).SetName(".");
 
         public static Rule AdvanceWhileNot(Rule r)
         {
@@ -116,6 +117,13 @@ namespace Diggins.Jigsaw
         {
             if (String.IsNullOrEmpty(s)) throw new ArgumentException();
             return MatchRegex(new Regex(s));
+        }
+
+        public static IEnumerable<Rule> GetRules(Type type)
+        {
+            foreach (var fi in type.GetFields())
+                if (fi.FieldType.Equals(typeof(Rule)))
+                    yield return (Rule)fi.GetValue(null);
         }
 
         /// <summary>
@@ -130,12 +138,20 @@ namespace Diggins.Jigsaw
                     var rule = fi.GetValue(null) as Rule;
                     if (rule == null)
                         throw new Exception("Unexpected null rule");
-                    if (rule.Name != null && rule.Name != fi.Name) 
-                        throw new Exception(String.Format("Trying to assign two names to the same rule. Orginal name was {0} and new name is {1}", 
-                            rule.Name, fi.Name));
                     rule.Name = fi.Name;
                 }
             }
+        }
+
+        public static void OutputGrammar(Type type, TextWriter tw)
+        {
+            foreach (var r in GetRules(type))
+                tw.WriteLine("{0} <- {1}", r.Name, r.Definition);
+        }
+
+        public static void OutputGrammar(Type type)
+        {
+            OutputGrammar(type, Console.Out);
         }
     }
 }

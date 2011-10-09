@@ -21,7 +21,7 @@ namespace Diggins.Jigsaw
 
         public List<Rule> Children = new List<Rule>();
 
-        public virtual string Name { get; set; }
+        public string Name { get; set; }
 
         public Rule Child { get { return Children[0]; } }
 
@@ -46,8 +46,30 @@ namespace Diggins.Jigsaw
 
         public override string ToString()
         {
-            return Name ?? "anonymous";
+            return Name ?? Definition;
         }
+
+        public List<Node> Parse(string input)
+        {
+            var state = new ParserState() { input = input, pos = 0 };
+            if (!Match(state))
+                throw new Exception(String.Format("Rule {0} failed to match", Name));
+            return state.nodes;
+        }
+
+        public bool Match(string input)
+        {
+            var state = new ParserState() { input = input, pos = 0 };
+            return Match(state);
+        }
+
+        public Rule SetName(string s)
+        {
+            Name = s;
+            return this;
+        }
+
+        public abstract string Definition { get; }
     }
 
     public class AtRule : Rule
@@ -64,9 +86,9 @@ namespace Diggins.Jigsaw
             return result;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return String.Format("At{0}", Child.ToString());
+            get { return String.Format("At({0})", Child.ToString()); }
         }
     }
 
@@ -87,9 +109,9 @@ namespace Diggins.Jigsaw
             return true;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return String.Format("Not({0})", Child.ToString());
+            get { return String.Format("Not({0})", Child.ToString()); }
         }
     }
 
@@ -154,7 +176,6 @@ namespace Diggins.Jigsaw
             }
         }
 
-
         private bool InternalMatchWithoutCaching(ParserState state)
         {
             Node node;
@@ -176,6 +197,11 @@ namespace Diggins.Jigsaw
                 state.nodes = oldNodes;
                 return false;
             }
+        }
+
+        public override string Definition 
+        {
+            get { return Child.Definition; }
         }
     }
 
@@ -199,6 +225,11 @@ namespace Diggins.Jigsaw
         {
             return Name ?? (Children.Count > 0 ? Children[0].ToString() : "recursive");
         }
+
+        public override string Definition 
+        {
+            get { return ruleGen().Definition; }
+        }
     };
 
     public class SeqRule : Rule
@@ -219,9 +250,29 @@ namespace Diggins.Jigsaw
             return true;
         }
 
+        public override string Definition 
+        {
+            get 
+            { 
+                var sb = new StringBuilder();               
+                sb.Append(Children[0].ToString());
+                if (Children.Count == 2 && Children[1] is SeqRule)
+                {
+                    sb.Append(" + ");
+                    sb.Append(Children[1].Definition);
+                }
+                else
+                {
+                    for (int i=1; i < Children.Count; ++i) 
+                        sb.Append(" + ").Append(Children[i].ToString());
+                }
+                return sb.ToString();
+            }
+        }
+
         public override string ToString()
         {
-            return Name ?? String.Join(" + ", Children);
+ 	        return String.Format("({0})", base.ToString());
         }
     }
 
@@ -243,9 +294,29 @@ namespace Diggins.Jigsaw
             return false;
         }
 
+        public override string Definition 
+        {
+            get 
+            { 
+                var sb = new StringBuilder();               
+                sb.Append(Children[0].ToString());
+                if (Children.Count == 2 && Children[1] is ChoiceRule)
+                {
+                    sb.Append(" | ");
+                    sb.Append(Children[1].Definition);
+                }
+                else
+                {
+                    for (int i=1; i < Children.Count; ++i) 
+                        sb.Append(" | ").Append(Children[i].ToString());
+                }
+                return sb.ToString();
+            }
+        }
+
         public override string ToString()
         {
-            return Name ?? String.Join(" | ", Children);
+ 	        return String.Format("({0})", base.ToString());
         }
     }
 
@@ -256,15 +327,15 @@ namespace Diggins.Jigsaw
             return state.pos == state.input.Length;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return "_end_";
+            get { return "_EOF_"; }
         }
     }
 
-    public class StarRule : Rule
+    public class ZeroOrMoreRule : Rule
     {
-        public StarRule(Rule r)
+        public ZeroOrMoreRule(Rule r)
             : base(r)
         { }
 
@@ -274,9 +345,9 @@ namespace Diggins.Jigsaw
             return true;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return Child.ToString() + "*";
+            get { return String.Format("{0}*", Child.ToString()); }
         }
     }
 
@@ -293,9 +364,9 @@ namespace Diggins.Jigsaw
             return true;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return Child.ToString() + "+";
+            get { return String.Format("{0}+", Child.ToString()); }
         }
     }
 
@@ -311,9 +382,9 @@ namespace Diggins.Jigsaw
             return true;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return Child.ToString() + "?";
+            get { return String.Format("{0}?", Child.ToString()); }
         }
     }
 
@@ -334,9 +405,9 @@ namespace Diggins.Jigsaw
             return true;
         }
 
-        public override string ToString()
+        public override string Definition
         {
-            return Name ?? s;
+            get { return String.Format("\"{0}\"", s); }
         }
     }
 
@@ -358,6 +429,11 @@ namespace Diggins.Jigsaw
             state.pos++;
             return true;
         }
+
+        public override string Definition
+        {
+            get { return "f(char)"; }
+        }
     }
 
     public class RegexRule : Rule
@@ -376,5 +452,11 @@ namespace Diggins.Jigsaw
             state.pos += m.Length;
             return true;
         }
+
+        public override string Definition
+        {
+            get { return String.Format("regex({0})", re.ToString()); }
+        }
     }
+
 }

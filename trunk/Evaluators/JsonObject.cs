@@ -6,8 +6,18 @@ using System.Dynamic;
 
 namespace Diggins.Jigsaw
 {
-    public class JsonObject : DynamicObject
+    public class JsonObject : DynamicObject    
     {
+        static string Unquote(string s)
+        {
+            int n = s.Length;
+            return (n > 2 && s.First() == '"' && s[n - 1] == '"')
+                ? s.Substring(1, n - 2)
+                : s;
+        }
+
+        public static readonly JsonObject Null = new JsonObject();
+
         ExpandoObject x = new ExpandoObject();
 
         public IDictionary<string, Object> AsDictionary
@@ -15,34 +25,20 @@ namespace Diggins.Jigsaw
             get { return x; }
         }
 
-        public bool ValidJSONField(object o)
-        {
-            var t = o.GetType();
-            return t == typeof(Int32) 
-                || t == typeof(String) 
-                || t == typeof(Double)
-                || t == typeof(JsonObject)
-                || t == typeof(List<dynamic>)
-                || t == typeof(bool);
-        }
-
         public bool HasField(string s)
         {
-            return AsDictionary.ContainsKey(s);
+            return AsDictionary.ContainsKey(Unquote(s));
         }
 
         public dynamic this[string name]
         {
             get 
             {
-                return AsDictionary[name];
+                return AsDictionary[Unquote(name)];
             }
             set
             {
-                if (!ValidJSONField(value))
-                    throw new ArgumentException();
-
-                x.AsDictionary()[name] = value;
+                AsDictionary[Unquote(name)] = value;
             }
         }
 
@@ -112,35 +108,35 @@ namespace Diggins.Jigsaw
             return sb;
         }
 
-        public static dynamic JsonValueFromAst(Node node)
+        public static dynamic Eval(Node n)
         {
-            switch (node.Label)
+            switch (n.Label)
             {
                 case "Name":
-                    return JsonValueFromAst(node[0]);
+                    return Eval(n[0]);
                 case "Value":
-                    return JsonValueFromAst(node[0]);
+                    return Eval(n[0]);
                 case "Number":
-                    return JsonValueFromAst(node[0]);
+                    return Eval(n[0]);
                 case "Object":
                     {
                         var r = new JsonObject();
-                        foreach (var pair in node["Members"].Nodes)
+                        foreach (var pair in n.Nodes)
                         {
-                            var name = pair["Name"]["String"]["StringChars"].Text;
-                            var value = JsonValueFromAst(pair["Value"]);
+                            var name = pair[0].Text;
+                            var value = Eval(pair[1]);
                             r[name] = value;
                         }
                         return r;
                     }
                 case "Array":
-                    return node["Elements"].Nodes.Select(JsonValueFromAst).ToList();
+                    return n.Nodes.Select(Eval).ToList();
                 case "Integer":
-                    return Int32.Parse(node.Text);
+                    return Int32.Parse(n.Text);
                 case "Float":
-                    return Double.Parse(node.Text);
+                    return Double.Parse(n.Text);
                 case "String":
-                    return node.Text.Substring(1, node.Text.Length - 2);
+                    return n.Text.Substring(1, n.Text.Length - 2);
                 case "True":
                     return true;
                 case "False":
@@ -148,7 +144,7 @@ namespace Diggins.Jigsaw
                 case "Null":
                     return new JsonObject();
                 default:
-                    throw new Exception("Unexpected node type " + node.Label);
+                    throw new Exception("Unexpected node type " + n.Label);
             }
         }
 
@@ -167,17 +163,14 @@ namespace Diggins.Jigsaw
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            if (!HasField(binder.Name)) return false;
             this[binder.Name] = value;
             return true;
         }
 
         public static JsonObject Parse(string s)
         {
-            var nodes = Parser.Parse(s, Grammars.JsonGrammar.Object);
-            if (nodes == null)
-                throw new Exception("Parser failed");
-            return JsonValueFromAst(nodes[0]);
+            var nodes = JsonGrammar.Object.Parse(s);
+            return Eval(nodes[0]);
         }
     }
 }

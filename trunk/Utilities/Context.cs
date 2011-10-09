@@ -51,11 +51,5 @@ namespace Diggins.Jigsaw
         {
             return FindContext(name).Value = value;
         }
-
-        public dynamic AssignOrCreate(string name, dynamic value)
-        {
-            var c = FindContextOrDefault(name);
-            return c != null ? c.Value = value : AddContext(name, value);
-        }
     }
 }

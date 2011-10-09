@@ -75,7 +75,7 @@
     <Compile Include="Tests\CodeProjectArticleSnippets.cs" />
     <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
     <Compile Include="Tests\GrammarTest.cs" />
-    <Compile Include="Tests\JSTests.cs" />
+    <Compile Include="Tests\JavaScriptTests.cs" />
     <Compile Include="Theory\Circuits.cs" />
     <Compile Include="Utilities\Context.cs" />
     <Compile Include="Compilers\CSharpFunctionCompiler.cs" />

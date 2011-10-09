@@ -88,6 +88,11 @@ namespace Diggins.Jigsaw
             }
         }
 
+        public static dynamic Eval(string op, dynamic a0, dynamic a1)
+        {
+            return GetMethodFromBinaryOperator(op).Invoke(null, new[] { a0, a1 });
+        }
+
         public static MethodInfo GetMethodFromBinaryOperator(string s)
         {
             return GetMethod(BinaryOperatorToMethodName(s));
