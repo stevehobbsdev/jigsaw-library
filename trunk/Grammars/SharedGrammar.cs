@@ -23,8 +23,8 @@ namespace Diggins.Jigsaw
         public static Rule Identifier       = IdentFirstChar + ZeroOrMore(IdentNextChar);
         public static Rule Exp              = E + Digits;
         public static Rule Frac             = MatchChar('.') + Digits;
-        public static Rule Integer          = MatchChar('0') | Digits;
-        public static Rule Float            = Integer + ((Frac + Opt(Exp)) | Exp);
+        public static Rule Integer          = Digits + Not(MatchChar('.'));
+        public static Rule Float            = Digits + ((Frac + Opt(Exp)) | Exp);
         public static Rule HexDigit         = Digit | CharRange('a', 'f') | CharRange('A', 'F');
             
         public static Rule CharToken(char c) { return MatchChar(c) + WS; }

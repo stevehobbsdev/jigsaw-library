@@ -19,36 +19,19 @@ namespace Diggins.Jigsaw
             return Primitives.add(a, b);
         }
 
-        static void ETreeTest()
-        {
-            Expression<Func<object, object, object>> e = (object a, object b) => Primitives.add(a, b);
-            dynamic f = e.Compile();
-            Console.WriteLine(f(20, 22));
-
-            /*
-            var a = Expression.Parameter(typeof(int), "a");
-            var b = Expression.Parameter(typeof(int), "b");
-            var l = Expression.Lambda(Expression.Add(a, b), a, b);
-            dynamic f = l.Compile();
-            Console.WriteLine(f(3, 4));
-             */
-        }
-
         static void Main(string[] args)
         {
-            //ArithmeticTests.Tests();
-            //SExprTests.Tests();
-            //DynamicExtensions.Test();
-            //JsonTests.Tests();
-            //ETreeTest();
-            //UnifierTests.Tests();
-            //CatTests.Tests();
-            //ILTests.Tests();
-            //LambdaCalculus.Test();
-            //EmbeddedScheme.Tests();
-            //CodeDOMCompilerTests.Tests();
-            //CSharpFunctionCompilerTests.Tests();
-            //JavaScriptTests.Tests();
+            ArithmeticTests.Tests();
+            SExprTests.Tests();
+            JsonTests.Tests();
+            UnifierTests.Tests();
+            CatTests.Tests();
+            ILTests.Tests();
+            LambdaCalculus.Test();
+            EmbeddedScheme.Tests();
+            CodeDOMCompilerTests.Tests();
+            CSharpFunctionCompilerTests.Tests();
+            JavaScriptTests.Tests();
             CodeProjectArticleSnippets.Tests();
             Console.WriteLine("And that's it. Press any key to go home ...");
             Console.ReadKey();

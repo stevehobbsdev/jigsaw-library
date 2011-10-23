@@ -6,8 +6,20 @@ using System.Diagnostics;
 
 namespace Diggins.Jigsaw
 {
-    public class JavaScriptEvaluator
+    public class JavaScriptEvaluator : Evaluator
     {
+        #region fields
+        bool isReturning = false;
+        dynamic result = null;
+        #endregion fields
+
+        public JavaScriptEvaluator()
+        {
+            // This is where you could add all sorts of primitive objects and functions. Or don't. Fine.
+            AddBinding("alert", new JSPrimitive(args => { Console.WriteLine(args[0]); }));
+        }
+
+        #region static functions
         public static dynamic RunScript(string s)
         {
             return new JavaScriptEvaluator().Eval(s, JavaScriptGrammar.Script);
@@ -17,80 +29,25 @@ namespace Diggins.Jigsaw
         {
             return new JavaScriptEvaluator().Eval(s, JavaScriptGrammar.Expr);
         }
+        #endregion
 
-        public class JSTransformer : TreeTransformer
-        {
-            public JSTransformer(Node n)
-            {
-                TransformNodes(n);
-
-                Debug.Assert(!n.Descendants.Any(x => x.Label == "PostfixExpr"));
-            }
-
-            Node ToAssignment(Node left, string op, Node right)
-            {
-                var assignOp = new Node("AssignOp", "=");                
-                var binOp = new Node("Binaryop", op);
-                var binExpr = new Node("BinaryExpr", left, binOp, right);
-                return new Node("AssignExpr", left, assignOp, binExpr);
-            }
-
-            protected override Node Transform(Node n)
-            {
-                switch (n.Label)
-                {
-                    case "PostfixExpr":
-                        {
-                            Debug.Assert(n.Count != 0);
-                            if (n.Count == 1)
-                                return n.Nodes[0];
-                            var last = n.Nodes.Last();
-                            switch (last.Label)
-                            {
-                                case "Field": return LeftGroup(n, "FieldExpr");
-                                case "Index": return LeftGroup(n, "IndexExpr");
-                                case "ArgList": return LeftGroup(n, "CallExpr");
-                                default: throw new Exception("Unexpected node in postfix-expression " + last.Label);
-                            }
-                        }
-                    case "AssignExpr":
-                        {
-                            if (n.Count == 1)
-                                return n[0];
-                            switch (n[1].Text)
-                            {
-                                case "=": return n;
-                                case "+=": return ToAssignment(n[0], "+", n[2]);
-                                case "-=": return ToAssignment(n[0], "-", n[2]);
-                                case "*=": return ToAssignment(n[0], "*", n[2]);
-                                case "/=": return ToAssignment(n[0], "/", n[2]);
-                                case "%=": return ToAssignment(n[0], "%", n[2]);
-                                case "|=": return ToAssignment(n[0], "|", n[2]);
-                                case "&=": return ToAssignment(n[0], "&", n[2]);
-                                case "^=": return ToAssignment(n[0], "^", n[2]);
-                                case "||=": return ToAssignment(n[0], "||", n[2]);
-                                case "&&=": return ToAssignment(n[0], "&&", n[2]);
-                                case ">>=": return ToAssignment(n[0], ">>", n[2]);
-                                case "<<=": return ToAssignment(n[0], "<<", n[2]);
-                                default:
-                                    throw new Exception("Unexpected assignment operator " + n[1].Text);
-                            }
-                        }
-                }
-                return n;
-            }
-        }
-
-        public class JSFunction
+        #region helper classes
+        /// <summary>
+        /// Represents a JavaScript function. Note that a function is also an object.
+        /// </summary>
+        public class JSFunction : JsonObject
         {
             public static int FuncCount = 0;
             public Node node;
-            public Context capture;
+            public VarBindings capture;
             public Node parms;
             public string name = String.Format("_anonymous_{0}", FuncCount++);
             public Node body;
-            
-            public JSFunction(Context c, Node n) { 
+
+            public JSFunction()
+            { }
+
+            public JSFunction(VarBindings c, Node n) { 
                 capture = c;  
                 node = n;
                 if (n.Count == 3)
@@ -106,132 +63,173 @@ namespace Diggins.Jigsaw
                 }
             }
 
-            public dynamic Eval(JavaScriptEvaluator e, params dynamic[] args)
+            public virtual dynamic Apply(JavaScriptEvaluator e, dynamic self, params dynamic[] args)
             {
-                var originalContext = e.context;
+                var originalContext = e.env;
                 var originalReturningState = e.isReturning;
                 dynamic result = null;
 
                 try
                 {
-                    e.context = capture;
+                    e.env = capture.AddBinding("this", self);                    
                     e.isReturning = false;
                     int i = 0;
                     foreach (var p in parms.Nodes)
-                        e.AddContext(p.Text, args[i++]);                    
+                        e.AddBinding(p.Text, args[i++]);                    
                     e.Eval(body);
                     result = e.result;
                 }
                 finally
                 {
                     e.result = null;
-                    e.context = originalContext;
+                    e.env = originalContext;
                     e.isReturning = originalReturningState;
                 }
                 return result;
             }
+
+            public override string ToString()
+            {
+                return node.ToString();
+            }
         }
 
-        Context context = new Context();
-        bool isReturning = false;
-        dynamic result = null;
-
-        public dynamic AddContext(string name, dynamic x)
+        /// <summary>
+        /// Represents a built-in function. 
+        /// </summary>
+        public class JSPrimitive : JSFunction
         {
-            context = context.AddContext(name, x);
-            return x;
-        }
+            Func<dynamic, dynamic[], dynamic> func;
 
-        public dynamic AddContextOrCreate(string name, dynamic value)
-        {
-            var c = context.FindContextOrDefault(name);
-            return c != null ? c.Value = value : AddContext(name, value);
-        }
+            public JSPrimitive(Func<dynamic, dynamic[], dynamic> func)
+            {
+                this.func = func;
+            }
 
+            public JSPrimitive(Action<dynamic, dynamic[]> action)
+            {
+                this.func = (self, args) => { action(self, args); return null; };
+            }
+
+            public JSPrimitive(Action<dynamic[]> action)
+            {
+                this.func = (self, args) => { action(args); return null; };
+            }
+
+            public JSPrimitive(Func<dynamic[], dynamic> function)
+            {
+                this.func = (self, args) => function(args); 
+            }
+
+            public override dynamic Apply(JavaScriptEvaluator e, dynamic self, params dynamic[] args)
+            {
+                return func(self, args);
+            }
+        }
+        #endregion
 
         public dynamic Eval(string s, Rule r)
         {
             var nodes = r.Parse(s);
-            var root = nodes[0];
-            new JSTransformer(root);
+            var root = JavaScriptTransformer.Transform(nodes[0]);
             return Eval(root);
-        }
-
-        public dynamic EvalScoped(Func<dynamic> f)
-        {
-            var c = context;
-            var r = f();
-            context = c;
-            return r;
         }
 
         public dynamic EvalNodes(IEnumerable<Node> nodes)
         {
             dynamic result = null;
             foreach (var n in nodes)
+            {
                 result = Eval(n);
+                if (isReturning)
+                    return result;
+            }
             return result;
         }
 
+        /// <summary>
+        /// This evaluates the nodes of a JavaScript parse tree. The tree is assumed to 
+        /// have first been transformed using the JavaScriptTransformer
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public dynamic Eval(Node n)
         {
-            if (isReturning)
-                return result;
+            Debug.Assert(!isReturning);
 
             switch (n.Label)
             {
                 case "Return":
+                    // Evaluate the return value expression if present, or return null. 
                     result = n.Count == 1 ? Eval(n[0]) : null;
+                    // Set the "isReturning" flag. 
                     isReturning = true;
                     return result;
                 case "Script":
+                    // Evaluate all statements in the script in order 
                     return EvalScoped(() => EvalNodes(n.Nodes));
-                case "Statement":
-                    return Eval(n[0]);
-                case "NamedFunc":
-                    return AddContext(n[0].Text, new JSFunction(context, n));
                 case "AnonFunc":
-                    return new JSFunction(context, n);
-                case "While":
-                    while (Eval(n[0]) ?? false)
-                        Eval(n[1]);
-                    return null;
+                    // Creates an unnamed function
+                    return new JSFunction(env, n);
                 case "Block":
+                    // Execute a sequence of instructions
                     return EvalScoped(() => EvalNodes(n.Nodes));
                 case "If":
+                    // Check if the condition is false (or NULL)
                     if (Eval(n[0]) ?? false)
+                        // Execute first statement
                         return Eval(n[1]);
                     else if (n.Count > 2)
+                        // Execute else statement if the condition is false, and it exists 
                         return Eval(n[2]);
-                    return null;
+                    else
+                        // By default reutrn the result 
+                        return null;
                 case "VarDecl":
-                    return (n.Count > 1) 
-                        ? AddContext(n[0].Text, Eval(n[1]))
-                        : AddContext(n[0].Text, null);
+                    // Variable declaration
+                    // It may or may not be initialized
+                    return AddBinding(n[0].Text, n.Count > 1 ? Eval(n[1]) : null);
+                case "Empty":
+                    // An empty statement means we do nothing
+                    return null;
+                case "ExprStatement":
+                    return Eval(n[0]);
                 case "For":
+                    // For loop (could also have been a transformed while loop)
                     return EvalScoped(() =>
                     {
+                        dynamic r = null;
+
+                        // Typically this is the initialization statement. 
+                        // Because it is scoped with the entire for statement
+                        // we wrapped this all in a call to "EvalScoped".
                         Eval(n[0]);
-                        while (Eval(n[1]) ?? false)
+                        
+                        // We exit prematurely if a return statement was encountered. 
+                        // We also exit the loop when the loop invariant is false or null
+                        while (!isReturning && (Eval(n[1]) ?? false))
                         {
+                            // Evaluate the body of the loop
                             Eval(n[3]);
-                            Eval(n[2]);
+
+                            // Evaluate the loop control statement 
+                            r = Eval(n[2]);
                         }
-                        return null;
+                        
+                        // We always return the "result" variable from a statement
+                        // in case we are exiting the function 
+                        return r;
                     });
-                case "Expr":
-                    if (n.Count > 1)
-                        return Eval(n[0])
-                            ? Eval(n[1])
-                            : Eval(n[2]);
-                    else
-                        return Eval(n[0]);
                 case "BinaryExpr":
-                    if (n.Count > 1)
-                        return Primitives.Eval(n[1].Text, Eval(n[0]), Eval(n[2]));
-                    else
-                        return Eval(n[0]);
+                    // Evaluat a binary operation 
+                    {
+                        var op = n[1].Text;
+                        var left = Eval(n[0]);
+                        var right = Eval(n[2]);
+                        return Primitives.Eval(op, left, right);
+                    }
                 case "PrefixExpr":
+                    // Evaluates a prefixed unary operation
                     switch (n[0].Text)
                     {
                         case "!":
@@ -244,66 +242,80 @@ namespace Diggins.Jigsaw
                             throw new Exception("Unrecognized prefix operator " + n[0].Text);
                     }
                 case "FieldExpr":
+                    // Retrieves a field from an object
                     {
-                        var jso = (JsonObject)Eval(n[0]);
-                        return jso[n[1][0].Text];
+                        var obj = Eval(n[0]);
+                        var field = n[1][0].Text;
+                        return obj[field];
                     }
                 case "IndexExpr":
-                    return Eval(n[0])[Eval(n[1])];
-                case "CallExpr":
+                    // Retrieves an indexed field or property
                     {
+                        var index = Eval(n[1]);
+                        var array = Eval(n[0]);
+                        return array[index];
+                    }
+                case "CallExpr":
+                    // A function call that is not a method
+                    {
+                        var func = Eval(n[0]);
                         var args = n[1].Nodes.Select(Eval).ToArray();
-                        var func = (JSFunction)Eval(n[0]);
-                        return func.Eval(this, args);
+                        return func.Apply(this, null, args);
+                    }
+                case "MethodCallExpr":
+                    // Method invocation
+                    {
+                        var obj = Eval(n[0]);
+                        var func = Eval(n[1]);
+                        var args = n[2].Nodes.Select(Eval).ToArray();
+                        return func.Apply(this, obj, args);
+                    }
+                case "NewExpr":
+                    // A new expression. 
+                    {
+                        var func = Eval(n[0]);
+                        var args = n[1].Nodes.Select(Eval).ToArray();
+                        return func.Apply(this, new JsonObject(), args);
                     }
                 case "AssignExpr":
+                    // Assigns a value to a variable, creating it if necesseary
                     {
-                        if (n.Count == 1)
-                            return Eval(n[0]);
                         var lnode = n[0];
                         var rnode = n[2];
                         var rvalue = Eval(rnode);
                         switch (lnode.Label)
                         {
+                            // Assignment to a field                            
                             case "FieldExpr":
                                 {
-                                    Debug.Assert(lnode.Count == 2);
                                     var obj = Eval(lnode[0]);
                                     var name = lnode[1].Text;
                                     return obj[name] = rvalue;
                                 }
+                            // Assignment to an index operation
                             case "IndexExpr":
                                 {
-                                    Debug.Assert(lnode.Count == 2);
                                     var obj = Eval(lnode[0]);
                                     var index = Eval(lnode[1]);
                                     return obj[index] = rvalue;
                                 }
+                            // Assignment to an identifier
                             case "Identifier":
                                 {
                                     var name = lnode.Text;
-                                    return AddContextOrCreate(name, rvalue);
+                                    // See: https://developer.mozilla.org/en/JavaScript/Reference/Statements/Var
+                                    // where unreference variables are created as new global variables
+                                    return RebindOrCreateGlobalBinding(name, rvalue);
                                 }
-                            default: throw new Exception("Invalid lvalue " + n[0].Label);
+                            default: 
+                                throw new Exception("Invalid lvalue " + n[0].Label);
                         }
                     }
-                case "LeafExpr":
-                    return Eval(n[0]);
-                case "ParenExpr":
-                    return Eval(n[0]);
-                case "New":
-                    return EvalScoped(() =>
-                    {
-                        AddContext("this", new JsonObject());
-                        return Eval(n[0]);
-                    });
                 case "Identifier":
-                    return context[n.Text];
-                case "Literal":
-                    return Eval(n[0]);
-                case "Number":
-                    return Eval(n[0]);
+                    // Look-up an identifier in the environment 
+                    return env[n.Text];
                 case "Object":
+                    // An object literal value
                     {
                         var r = new JsonObject();
                         foreach (var pair in n.Nodes)
@@ -315,19 +327,26 @@ namespace Diggins.Jigsaw
                         return r;
                     }
                 case "Array":
-                    return n.Nodes.Select(Eval).ToList();
+                    // An array literal value
+                    return n.Nodes.Select(Eval).ToArray();
                 case "Integer":
+                    // An integer literal value
                     return Int32.Parse(n.Text);
                 case "Float":
+                    // A floating point literal value 
                     return Double.Parse(n.Text);
                 case "String":
+                    // A string literal value
                     return n.Text.Substring(1, n.Text.Length - 2);
                 case "True":
+                    // A true value
                     return true;
                 case "False":
+                    // A false value
                     return false;
                 case "Null":
-                    return JsonObject.Null;
+                    // A null value.
+                    return null;
                 default:
                     throw new Exception("Unrecognized node type " + n.Label);
             }

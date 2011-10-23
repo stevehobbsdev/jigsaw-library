@@ -40,7 +40,7 @@ namespace Diggins.Jigsaw
                     else
                         return ToExpr(n[0]);    
                 case "AssignExpr":
-
+                    throw new NotImplementedException();
                 case "BinaryExpr":
                     if (n.Count > 1)
                         return CreateBinaryExpression(n[1].Text, ToExpr(n[0]), ToExpr(n[2]));
@@ -111,18 +111,18 @@ namespace Diggins.Jigsaw
                 case "TypedLambdaParam":
                     return Expression.Parameter(Utilities.GetType(n[0].Text), n[1].Text);
                 case "LambdaExpr":
+                    var ps = n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>();
                     if (n[1].Label == "Block")
-                        return CreateStatementLambda(n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>().ToArray(), () => ToExpr(n[1]));
+                        return CreateStatementLambda(ps, () => ToExpr(n[1]));
                     else
-                        return CreateExpressionLambda(n[0].Nodes.Select(ToExpr).OfType<ParameterExpression>().ToArray(), () => ToExpr(n[1]));
+                        return CreateExpressionLambda(ps, () => ToExpr(n[1]));
                 case "Block":
                     return ScopedExpr(() => Expression.Block(n.Nodes.Select(ToExpr)));
                 case "ExprStatement":
                     return Expression.Block(ToExpr(n[0]));
                 case "ReturnStatement":
                     if (n.Count > 0)
-                        return Expression.Return(GetReturnTarget());
-                    else
+                        return Expression.Return(GetReturnTarget(), Expression.Constant(null)); else
                         return Expression.Return(GetReturnTarget(), ToExpr(n[0]));
                 case "Statement":
                     return ToExpr(n[0]);

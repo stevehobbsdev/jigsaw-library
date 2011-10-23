@@ -117,7 +117,10 @@ namespace Diggins.Jigsaw
 
     public class NodeRule : Rule
     {
-        public readonly bool UseCache = false;
+        /// <summary>
+        /// Set to false to see how long it takes to parse grammars without memoization.
+        /// </summary>
+        private static readonly bool UseCache = true;
 
         public NodeRule(Rule r)
             : base(r)

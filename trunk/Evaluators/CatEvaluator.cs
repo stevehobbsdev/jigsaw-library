@@ -44,18 +44,17 @@ namespace Diggins.Jigsaw
             public dynamic Peek { get { return Values.Peek(); }  }
             public void Push(dynamic o) { Values.Push(o); }
 
-            [Callable] public void Zap() { Pop(); }
-            [Callable] public void Swap() { var a = Pop(); var b = Pop(); Push(a); Push(b); }
-            [Callable] public void Apply() { Apply(Pop()); }
-            [Callable] public void Dup() { Push(Peek); }
-            [Callable] public void Quote() { Push(new QuotedValue(Pop())); }
-            [Callable] public void Compose() { Push(new Composition(Pop(), Pop())); }
-            [Callable] public void Nil() { Push(List.Empty); }
-            [Callable] public void IsNil() { Push(List.Empty == Peek()); }
-            [Callable] public void Cons() { Push(List.Cons(Pop(), Pop())); } 
-            [Callable] public void Uncons() { var xs = Pop(); Push(xs.Tail); Push(xs.Head); } 
-            [Callable] public void While() { var body = Pop(); while (Pop()) body.Apply(this); }
-            [Callable] public void MakeList() { var q = Pop(); var stk = Values; Values = new Stack<dynamic>(); Apply(q); stk.Push(List.Build(Values)); Values = stk; }
+            [Callable] public void zap() { Pop(); }
+            [Callable] public void swap() { var a = Pop(); var b = Pop(); Push(a); Push(b); }
+            [Callable] public void apply() { Apply(Pop()); }
+            [Callable] public void dup() { Push(Peek); }
+            [Callable] public void quote() { Push(new QuotedValue(Pop())); }
+            [Callable] public void compose() { Push(new Composition(Pop(), Pop())); }
+            [Callable] public void isnil() { Push(List.Empty == Peek()); }
+            [Callable] public void cons() { Push(List.Cons(Pop(), Pop())); } 
+            [Callable] public void uncons() { var xs = Pop(); Push(xs.Tail); Push(xs.Head); } 
+            [Callable] public void @while() { var body = Pop(); while (Pop()) body.Apply(this); }
+            [Callable] public void list() { var q = Pop(); var stk = Values; Values = new Stack<dynamic>(); Apply(q); stk.Push(List.Build(Values)); Values = stk; }
             
             public void Eval(Node n) 
             {

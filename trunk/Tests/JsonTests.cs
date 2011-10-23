@@ -57,6 +57,9 @@ namespace Diggins.Jigsaw
             Test("{ \"a\" : { \"b\" : 2 } }");
             Test("{ \"a\" : [ 1, 2, 3 ] }");
             Test("{ \"a\" : \"b\" }");
+            Test("145.88", JsonGrammar.Float);
+            Test("{ \"a\" : 145.99 }");
+            Test("{ \"author\" : \"Christopher\", \"title\" : \"Implementing Languages\", \"price\" : 145.99 }");
 
             dynamic d = JsonObject.Parse("{ \"answer\" : 42 }");
             Console.WriteLine(d.answer);

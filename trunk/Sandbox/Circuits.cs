@@ -34,7 +34,7 @@ namespace Diggins.Jigsaw
 
         public class BinaryLogicGate : Circuit
         {
-            private Func<bool, bool, bool> func;
+            //private Func<bool, bool, bool> func;
             public BinaryLogicGate(Func<bool, bool, bool> f)
                 : base(2, 1)
             {
