@@ -67,26 +67,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compilers\JavaScriptExpressionCompiler.cs" />
     <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
+    <Compile Include="Evaluators\Evaluator.cs" />
     <Compile Include="Evaluators\JavaScriptEvaluator.cs" />
-    <Compile Include="Parsing\TreeTransformer.cs" />
-    <Compile Include="Parsing\TreeVisitor.cs" />
+    <Compile Include="Tests\JavaScriptCompilerTests.cs" />
+    <Compile Include="Transformers\TreeTransformer.cs" />
+    <Compile Include="Printers\JavaScriptSourcePrinter.cs" />
+    <Compile Include="Printers\Printer.cs" />
     <Compile Include="Sandbox\LeftRecursion.cs" />
     <Compile Include="Tests\CodeProjectArticleSnippets.cs" />
     <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
     <Compile Include="Tests\GrammarTest.cs" />
     <Compile Include="Tests\JavaScriptTests.cs" />
-    <Compile Include="Theory\Circuits.cs" />
-    <Compile Include="Utilities\Context.cs" />
+    <Compile Include="Sandbox\Circuits.cs" />
+    <Compile Include="Transformers\JavaScriptTransformer.cs" />
+    <Compile Include="Utilities\VarBindings.cs" />
     <Compile Include="Compilers\CSharpFunctionCompiler.cs" />
-    <Compile Include="Theory\Currying.cs" />
+    <Compile Include="Sandbox\Currying.cs" />
     <Compile Include="Theory\EmbeddedLambdaCalculus.cs" />
     <Compile Include="Compilers\ExpressionCompiler.cs" />
     <Compile Include="Parsing\Grammar.cs" />
     <Compile Include="Grammars\CSharpLiteralsGrammar.cs" />
     <Compile Include="Grammars\ILGrammar.cs" />
     <Compile Include="Grammars\JavaScriptGrammar.cs" />
-    <Compile Include="Grammars\LuaGrammar.cs" />
+    <Compile Include="Sandbox\LuaGrammar.cs" />
     <Compile Include="Grammars\SchemeGrammar.cs" />
     <Compile Include="Compilers\ILCompiler.cs" />
     <Compile Include="Sandbox\ListFusion.cs" />
@@ -98,7 +103,6 @@
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Evaluators\JsonObject.cs" />
     <Compile Include="Utilities\List.cs" />
-    <Compile Include="Parsing\PrecedenceResolution.cs" />
     <Compile Include="Evaluators\PostfixCalculator.cs" />
     <Compile Include="Parsing\Rule.cs" />
     <Compile Include="Sandbox\CalculatorGrammar.cs" />
@@ -116,15 +120,15 @@
     <Compile Include="Sandbox\ScalaGrammar.cs" />
     <Compile Include="Evaluators\CatEvaluator.cs" />
     <Compile Include="Sandbox\PPGrammar.cs" />
-    <Compile Include="Utilities\ObserverPattern.cs" />
+    <Compile Include="Sandbox\ObserverPattern.cs" />
     <Compile Include="Utilities\Primitives.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Grammars\SExpressionGrammar.cs" />
     <Compile Include="Sandbox\TabDelimitedGrammar.cs" />
     <Compile Include="Sandbox\XmlGrammar.cs" />
-    <Compile Include="Compilers\SchemeCompiler.cs" />
-    <Compile Include="Evaluators\SECDMachine.cs" />
+    <Compile Include="Compilers\SchemeExpressionCompiler.cs" />
+    <Compile Include="Sandbox\SECDMachine.cs" />
     <Compile Include="Theory\SKCalculus.cs" />
     <Compile Include="Tests\ArithmeticTests.cs" />
     <Compile Include="Tests\CatTests.cs" />
@@ -160,7 +164,9 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="notes.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

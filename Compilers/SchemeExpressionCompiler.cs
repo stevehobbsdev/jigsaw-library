@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Diggins.Jigsaw
 {
-    public class SchemeCompiler : ExpressionCompiler
+    public class SchemeExpressionCompiler : ExpressionCompiler
     {
         public static Delegate CompileLambda(string s)
         {
@@ -18,8 +18,8 @@ namespace Diggins.Jigsaw
 
         public static Delegate CompileLambda(Node n)
         {
-            var compiler = new SchemeCompiler();
-            var expr = compiler.ToExpr(n) as LambdaExpression;
+            var compiler = new SchemeExpressionCompiler();
+            var expr = (LambdaExpression)compiler.ToExpr(n);
             if (expr == null) return null;
             return expr.Compile();
         }
@@ -39,7 +39,7 @@ namespace Diggins.Jigsaw
             var exprs = new List<Expression>();
             foreach (var binding in node[0].Nodes) {
                 var name = binding[0].Text;
-                var param = AddToContext(Expression.Parameter(typeof(Object), name));
+                var param = AddBinding(Expression.Parameter(typeof(Object), name));
                 exprs.Add(param);
                 exprs.Add(Expression.Assign(Lookup(name), ToExpr(binding[1])));
             }

@@ -1,0 +1,660 @@
+﻿<html>
+<head>
+<title>Implementing Programming Languages in C#</title>
+</head>
+<body>
+<h2>Introduction</h2>
+<p>This goal of this article is to introduce the basic concepts of programming language implementation for C# programmers. This article provides a quick overview of the concepts of implementing programming languages, and uses a number of examples including an arithmetic evaluator and a simple JavaScript interpreter. </p>
+<p>Accompanying this article is an open-source parser library written in C# 4.0 called Jigsaw. The most up to date version of Jigsaw can be downloaded online at <a href="http://code.google.com/p/jigsaw-library/">code.google.com/p/jigsaw-library/</a>.</p>
+<p>Jigsaw contains a reasonably efficient and robust parsing engine and a large number of sample grammars and evaluators. The Jigsaw parsing library is an evolution of the parsers used in the <a href="http://www.cat-language.com">Cat language</a> and later <a href="http://www.heron-language.com">Heron language</a>, but has been optimized by addding support for memoization.</p>
+<p>The Jigsaw library is licenced under the MIT open-source license. If for some reason you need another license please contact me at <a href="mailto:cdiggins@gmail.com">cdiggins@gmail.com</a>. If you end up using or abusing Jigsaw I would love to hear about it!</p>
+
+<h2>Built-in .NET Compilers</h2>
+
+<p>
+Before we start I should want to point out that if you are just looking for an off the shelf interpreter in C# you might want to consider the System.CodeDOM.Compiler namespace and one or more of the assemblies:
+</p>
+<ul>
+<li>Microsoft.CSharp</li>
+<li>Microsoft.Jscript</li>
+<li>Microsoft.VisualBasic</li>
+</ul>
+<p>
+Each of the assemblies provides a class derived from CodeDomProvider (e.g. CSharpCodeProvider) that can be used to compile an assembly at run-time.
+</p>
+<p>
+The following function  shows how to use a CodeDomProvider to generate an assembly dynamically. 
+</p>
+<pre lang="cs">
+	public static Assembly CompileWithProvider(CodeDomProvider provider, params string[] lines)
+	{
+		var param = new System.CodeDom.Compiler.CompilerParameters();
+		var result = provider.CompileAssemblyFromSource(param, lines);
+		foreach (var e in result.Errors)
+			Console.WriteLine("Error occured during compilation {0}", e.ToString());
+		if (result.Errors.Count > 0)
+			return null;
+		else
+			return result.CompiledAssembly;           
+	}
+</pre>
+<p>See the CodeDOMCompilers.cs file for more examples of how to use the built-in .NET compilers.</p>
+<p>That said I’m confident you are here because you want to learn the black arts of implementing programming languages, so continue on brave reader!</p>
+<h2>Anatomy of a Language Tool</h2>
+<p>
+Most language tools follow the same basic architecture:
+</p>
+<ol>
+<li>Tokenization (optional) – This phase is also known as lexing, lexical analysis, and scanning. During this phase a string of characters is converted into a string of tokens (also called lexemes). This phase is necessary for certain kinds of parsers (e.g. LALR) but not others (e.g. PEG). Parsers (like Jigsaw) without a tokenization phase are called scanner-less parsers.</li> 
+<li>Parser – Transforms a linear sequence of tokens or characters into a tree structure called a parse tree.</li>
+<li>Tree transformer (optional) – Modify the parse tree to simplify further steps.</li> 
+<li>Tree visitor – Visit each node in the tree and perform some action or create a new data structure.</li> 
+</ol>
+<p>
+Depending on what happens during the node visitor defines the type of language tool. For example:
+</p>
+<ul>
+<li>Interpreter – Nodes are transformed into run-time values or execute a primitive action.</li>
+<li>Compiler – Nodes are transformed into a machine executable representation.</li>
+<li>Pretty-printer –Node are transformed into a human readable form like ASCII or HTML.</li>
+<li>Translator – Nodes are transformed into a source code representation in a new programming language.</li>
+<li>Type-checker– Nodes are transformed into a representation of the type of the expression. This is also called abstract interpretation.</li>
+<li>Partial evaluator – This is an optimization phase where certain nodes in the tree are replaced by their evaluation (e.g. compile-time expressions).</li>
+</ul>
+<h2>Parsing</h2>
+<p>Parsing is a form of syntactical analysis. In it is simplest form, a parser just tells us whether an input string matches a specified syntactic form. More complex parsers will break the input up into a parse tree representing the syntactic components.</p>
+<p>Unfortunately the .NET framework has no tools out of the box for doing parsing. There are of course a large number of third-party parsing tools you can use. Some of the more popular tools ones are ANTLR, YACC, and BISON. These tools all generate the source code for a parser from a parser definition (called a grammar). </p>
+<p>One problem with using code generators is that the learning curve is quite steep. They each have their own syntax and rules. I may be a particularly dense individual but I had to implement my own hand-written parser before I could actually understand how to use these tools. By then it was too late, and I was hooked on writing hand-written parsers.</p>
+<p>This article uses a C# parsing library I wrote called Jigsaw. Jigsaw is a memoizing recursive descent backtracking PEG parser. This means:</p>
+<ul>
+<li>A recursive descent parser uses a set of mutually-recursive procedures to recognize syntactic elements in the language. [http://en.wikipedia.org/wiki/Recursive_descent_parser]</li>
+<li>A back-tracking parser will try parsing a set of rules in order, when facing a choice, until one succeeds.</li>
+<li>A memoizing parser is a parser that caches (memoizes) intermediate results of parsing rule using a lookup table, thus improving the worst-case time complexity of the algorithm. Memoizing PEG parsers are also known as Packrat parsers. Jigsaw only memoizes certain rule results, specifically those that correspond to parse-tree node generation rules. </li>
+<li>A PEG (Parsing Expression Grammar) parser recognizes grammars where each rule corresponds directly to a pattern matching algorithm. A more common alternative to PEG are predictive LR parsers (of which there are many) but they are more complicated. </li>
+</ul>
+<p>
+My experience was that this kind of parser most closely corresponded to my intuition of how a parser should work. 
+</p>
+<h2>Grammars</h2>
+<p>A grammar is a formal definition of the syntax of a language. Writing a grammar is a bit like writing a regular expression. The grammar consists of one or more rules defined in terms of other rules using rule operators (also called combinators). Each rule describes a particular syntactic element in the language known as a phrase.</p>
+<p>In the Jigsaw library grammars are expressed as a PEG (Parsing Expression Grammar). In a PEG grammar each rule defines a parser for a particular syntactic element.</p>
+<p>Time for some unlearning: The PEG is distinct from a CFG in that each rule describes how to generate strings, not how to recognize them. One implication is that a PEG can have zero-width rules, and is unambiguous. The difference between a PEG and a CFG is subtle but important. </p>
+<p>Each rule is an instance of a class derived from Rule. Its role is to recognize a syntactic element in the language (called a phrase). This recognition is done in the function "Match()" which returns a Boolean value indicating whether matching was successful or not. We can create instances of rules from static member functions of the grammar class.</p>
+<pre lang="cs">
+Grammar.MatchString("fox").Match("fox")); //  true
+Grammar.MatchString("fox").Match("foxy")); //  true
+Grammar.MatchString("fox").Match("flying fox")); //  false
+</pre>
+<p>Compound Rules that require a sequence of rules to be matched in sequence can be built using the pipe ("|") operator.</p> 
+<pre lang="cs">
+var rule = Grammar.MatchString("cat") | Grammar.MatchString("dog")
+rule.Match("catfish"); // true
+rule.Match("doggedly"); // true
+</pre>
+<p>
+Rules that succeed only if a sequence of child rules match successfully and in order can be built using the plus ("+") operator.  
+</p>
+<pre lang="cs">
+var rule = Grammar.MatchString("cat") + Grammar.MatchString("fish")
+rule.Match("catnip"); // false
+rule.Match("dogfish"); // false
+rule.Match("catfish"); // true
+</pre>
+<p>
+You can combine rules operators to create more sophisticated rules.
+</p>
+<pre lang="cs">
+var rule = (Grammar.MatchString("cat") | Grammar.MatchString("dog")) + Grammar.MatchString("fish")
+rule.Match("dogfish"); // true
+rule.Match("catfish"); // true
+rule.Match("swordfish"); // false
+rule.Match("cat"); // false
+</pre>
+<p>
+Rules can be defined as optional:
+</p>
+<pre>
+var rule = Grammar.MatchString("cat") + Grammar.Opt(Grammar.MatchString("fish") | Grammar.MatchString("nap"));
+rule.Match("cat"); // true
+rule.Match("catfish"); // true
+</pre>
+<p>Repeated rules can also be created using Grammar.ZeroOrMore() and Grammar.OneOrMore(). For example:</p>
+<pre lang="cs">
+var rule = Grammar.OneOrMore(Grammar.MatchString("badger"));
+rule.Match("badger badger badger badger snake!"); // true
+</pre>
+<h2>Creating a Parse Tree</h2>
+<p>Simply recognizing whether a string belongs to some grammar or not is not particularly useful when writing a programming language tool, what we really want is a data structure that represents the structure of the input.</p> 
+<p>Jigsaw allows this to be done by embedding "Grammar.Node" rules in the grammar. The rules add an instance of a "Node" class to a parse tree if the associated rule is successful. You can retrieve a list of root nodes by calling the "Rule.Parse()" function.</p> 
+<p>Node rules have to be named using Rule.SetName, unlike other rules where the name is optional. This name is used as the label of the associated node in the node tree.</p> 
+<p>The following code defines a simple grammar for parsing words.</p>
+<pre lang="cs">
+// Define the rules
+Rule word = Grammar.Node(Grammar.Pattern(@"\w+")).SetName("word");
+Rule ws = Grammar. Pattern(@"\s+");
+Rule eos = Grammar.CharSet("!.?");
+Rule sentence = Grammar.Node(Grammar.ZeroOrMore(word | ws) +
+  eos).SetName("sentence");
+Rule sentences = Grammar.OneOrMore(sentence + Grammar.Opt(ws));
+
+var nodes = sentences.Parse("Hey! You stole my pen. Hey you stole my pen!");
+foreach (var n in nodes) {
+  Console.WriteLine(n);
+  foreach (var n2 in n.Nodes)
+    Console.WriteLine("  " + n2);
+} 
+</pre>
+<p>The output of the above program is:</p>
+<pre lang="cs">
+sentence:Hey!
+  word:Hey
+sentence:You stole my pen.
+  word:You
+  word:stole
+  word:my
+  word:pen
+sentence:Hey you stole my pen!
+  word:Hey
+  word:you
+  word:stole
+  word:my
+  word:pen
+</pre>
+<h2>Concrete Syntax Tree to Abstract Syntax Tree conversion</h2>
+<p>
+The initial parse tree generated by a parser is sometimes called a CST (Concrete Syntax Tree). Depending on how the parse tree is generated this parse tree may contain too much syntactic information. This can make later phases too complicated so the CST is usually converted to another tree structure called the AST (abstract syntax tree). There is no clearly defined distinction between what constitutes a CST or an AST therefore we won’t bother making a distinction. It’s all just parse trees as far as I am concerned. 
+</p>
+<h2>Memoizing (Caching) Intermediate Results</h2>
+<p>Without memoization a recursive-descent parser can take extremely long to parse certain inputs with large grammars. In Jigsaw the results of the NodeRule matches are memoized.</p>  
+<p>If you set the NodeRule.UseCache constant to false you can see how long it takes to parse certain grammars by running the tests in the JavaScriptTests class.</p> 
+<h2>Simplifying Grammars: Deriving from the Grammar Class</h2>
+<p>When defining grammars the following points are particularly annoying:</p>
+<ol>
+<li>Always having to prefix "Grammar." In front of the rule creation functions.</li>
+<li>Having to explicitly set the names of node rules.</li> 
+</ol>
+<p>You can avoid these issues by defining a grammar in a class derived from Grammar, with each rule declared as a public static field. The "InitGrammar()" can then be used in the static initializer to automatically assign names to each rules associated with field.</p>  
+<p>The grammar used in the previous example could be simplified by defining it as follows:</p>
+<pre>
+public class SentenceGrammar : Grammar
+{
+    public static Rule word = Node(Pattern(@"\w+"));
+    public static Rule ws = Pattern(@"\s+");
+    public static Rule eos = CharSet("!.?");
+    public static Rule sentence = Node(ZeroOrMore(word | ws) + eos);
+    public static Rule sentences = OneOrMore(sentence + Opt(ws));
+
+    static SentenceGrammar() {
+        Grammar.InitGrammar(typeof(SentenceGrammar));
+    }
+}
+</pre>
+<h2>Recursive Rules</h2>
+<p>Rules defined as variables or fields can’t refer to themselves or any rule that hasn’t been defined yet. This would result in a null reference in the rule definition. For example the following grammar will generate an error during the type initialization phase.</p>
+<pre lang="cs">
+static Rule Number = Pattern("\d+");
+static Rule Operator = Node(MatchCharSet("+-*/"));
+static Rule Expr = (MatchString("(") + Expr + ")")| (Expr + Operator + Expr) | Number;
+</pre>
+<p>One solution is to use "Recursive" rules which take a lambda expression that returns an expression at run-time.</p>
+<pre lang="cs">
+static Rule RecExpr = Recursive(() =&gt; Expr);
+static Rule Number = Pattern("\d+");
+static Rule Operator = Node(MatchCharSet("+-*/"));
+static Rule Expr = ("(" + RecExpr + ")")| (RecExpr + Operator + RecExpr) | Number;
+</pre>
+<h2>Avoiding Left Recursive Rules</h2>
+<p>In a PEG grammar (including Jigsaw) recursive rules are not allowed in the left most position of a sequence. These are called "left-recursive" rules and will cause the parser to enter into an infinite loop.</p> 
+<p>Consider for example the grammar for recognizing functions calls (e.g. f(x) or f(x)(y)(z)).</p>
+<pre lang="cs">
+static Rule UnaryExpr = Node(Number | Identifier);
+static Rule ArgList = Node(Parenthesize(CommaList(RecExpr()))); 
+static Rule PostInc = Node(MatchString("++"));
+static Rule PostDec = Node(MatchString("--"));
+static Rule PostfixOp = Node(ArgList | PostInc | PostDec);
+static Rule PostfixExpr = Node((Recursive(() =&gt; PostfixOp) + ArgList) | UnaryExpr);
+</pre>
+<p>
+This enters into an infinite loop and will cause a stack overflow exception. The workaround is to rewrite the recursive rule as an iterative rule. 
+</p>
+<pre lang="cs">
+static Rule PostfixExpr = Node(UnaryExpr + ZeroOrMore(PostfixOp));
+</pre>
+<p>
+This rule works in the same way, but unfortunately produces a parse-tree which can introduce undesired complexity into an evaluator or compiler. This can be addressed by using a post-parse transformation pass which is discussed in the section "Writing a Tree Transformer".
+</p>
+<h2>A Simple Arithmetic Grammar</h2>
+<p>Pulling together everything we have learned so far here is a simple grammar for parsing arithmetic expressions.</p>
+<pre lang="cs">
+class ArithmeticGrammar : SharedGrammar
+{
+    new public static Rule Integer = Node(SharedGrammar.Integer);
+    new public static Rule Float = Node(SharedGrammar.Float);
+    public static Rule RecExpr = Recursive(() =&gt; Expression);
+    public static Rule ParanExpr = Node(CharToken('(') + RecExpr + WS + CharToken(')'));
+    public static Rule Number = (Integer | Float) + WS;
+    public static Rule PrefixOp = Node(MatchStringSet("! - ~"));
+    public static Rule PrefixExpr = Node(PrefixOp + Recursive(() =&gt; SimpleExpr));
+    public static Rule SimpleExpr = PrefixExpr | Number | ParanExpr;
+    public static Rule BinaryOp = Node(MatchStringSet("&lt;= &gt;= == != &lt;&lt; &gt;&gt; &amp;&amp; || &lt; &gt; &amp; | + - * % / ^"));
+    public static Rule Expression = Node(SimpleExpr + ZeroOrMore(BinaryOp + WS + SimpleExpr));
+    static ArithmeticGrammar() { InitGrammar(typeof(ArithmeticGrammar)); }
+}
+</pre>
+<p>You may have noticed that I’ve cheated here by using a "SharedGrammar" base class. This class defined some additional common rules and rule operations like WS, Integer, Float, and CharToken(). I’ll leave it to you to poke around in the code to see what is available.</p>
+<h2>Evaluating the Arithmetic Grammar Parse Tree</h2>
+<p>Once a parse tree is generated by parsing a string, we want to convert it into a value. This process is called evaluation. </p>
+<p>To do this we create a new class called ArithmeticEvaluator that has two functions "Eval(string s)" and "Eval(node n)".</p> 
+<p>For the sake of convenience both functions return a "dynamic" value. When we declare a value as having a type of "dynamic" it tells the compiler to not perform compile-time type-checking. Instead all operations are resolved at run-time.</p>
+<pre lang="cs">
+class ArithmeticEvaluator
+{
+    public static dynamic Eval(string s)
+    {
+        return Eval(Grammars.ArithmeticGrammar.Expression.Parse(s)[0]);
+    }
+
+    public static dynamic Eval(Node n)
+    {
+        switch (n.Label)
+        {
+            case "Number":      return Eval(n[0]);
+            case "Integer":     return Int64.Parse(n.Text);
+            case "Float":       return Double.Parse(n.Text);
+            case "PrefixExpr":
+                switch (n[0].Text)
+                {
+                    case "-": return -Eval(n[1]);
+                    case "!": return !Eval(n[1]);
+                    case "~": return ~Eval(n[1]);
+                    default: throw new Exception(n[0].Text);
+                }
+            case "ParanExpr":   return Eval(n[0]);
+            case "Expression":
+                switch (n.Count)
+                {
+                    case 1: 
+                        return Eval(n[0]);
+                    case 3: 
+                        switch (n[1].Text)
+                        {
+                            case "+": return Eval(n[0]) + Eval(n[2]);
+                            case "-": return Eval(n[0]) - Eval(n[2]);
+                            case "*": return Eval(n[0]) * Eval(n[2]);
+                            case "/": return Eval(n[0]) / Eval(n[2]);
+                            case "%": return Eval(n[0]) % Eval(n[2]);
+                            case "&lt;&lt;": return Eval(n[0]) &lt;&lt; Eval(n[2]);
+                            case "&gt;&gt;": return Eval(n[0]) &gt;&gt; Eval(n[2]);
+                            case "==": return Eval(n[0]) == Eval(n[2]);
+                            case "!=": return Eval(n[0]) != Eval(n[2]);
+                            case "&lt;=": return Eval(n[0]) &lt;= Eval(n[2]);
+                            case "&gt;=": return Eval(n[0]) &gt;= Eval(n[2]);
+                            case "&lt;": return Eval(n[0]) &lt; Eval(n[2]);
+                            case "&gt;": return Eval(n[0]) &gt; Eval(n[2]);
+                            case "&amp;&amp;": return Eval(n[0]) &amp;&amp; Eval(n[2]);
+                            case "||": return Eval(n[0]) || Eval(n[2]);
+                            case "&amp;": return Eval(n[0]) &amp; Eval(n[2]);
+                            case "|": return Eval(n[0]) | Eval(n[2]);
+                            default: throw new Exception("Unreocognized operator " + n[1].Text);
+                        }
+                    default: 
+                        throw new Exception(String.Format("Unexpected number of nodes {0} in expression", n.Count));
+                }
+            default:
+                throw new Exception("Unexpected type of node " + n.Label);
+        }
+    }
+}
+</pre>
+<h2>Writing a JSON Parser</h2>
+<p>JSON stands for JavaScript Object Notation. It is a subset of the JavaScript language that is frequently used as a textual data representation language. It is similar in structure to XML.</p>
+<p>In the Jigsaw library there is a class JsonObject derived from DynamicObject that can be created dynamically from a string. This means that we can write something like:</p>
+<pre lang="cs">
+dynamic d = JsonObject.Parse("{ \"answer\" : 42 }");
+Console.WriteLine(d.answer);
+</pre>
+<p>
+For the purpose of this article the most interesting part of the implementation of JsonObject is the Parse function.
+</p>
+<pre lang="cs">
+public static JsonObject Parse(string s)
+{
+    var nodes = JsonGrammar.Object.Parse(s);
+    return Eval(nodes[0]);
+}
+</pre>
+<p>To implement the parse function we first need to define a JSON grammar.</p>
+<pre lang="cs">
+public class JsonGrammar : SharedGrammar
+{
+    new public static Rule Integer = Node(SharedGrammar.Integer);
+    new public static Rule Float = Node(SharedGrammar.Float);
+    public static Rule Number = Node(Integer | Float);
+    public static Rule True = Node(MatchString("true"));
+    public static Rule False = Node(MatchString("false"));
+    public static Rule Null = Node(MatchString("null"));
+    public static Rule UnicodeControlChar = Node(MatchString("\\u") + HexDigit + HexDigit + HexDigit + HexDigit);
+    public static Rule ControlChar = Node(MatchChar('\\') + CharSet("\"\\/bfnt"));
+    public static Rule PlainChar = Node(ExceptCharSet("\"\\")); // " 
+    public static Rule Char = Node(UnicodeControlChar | ControlChar | PlainChar);
+    public static Rule StringChars = Node(ZeroOrMore(Char));
+    public static Rule String = Node(MatchChar('"') + StringChars + MatchChar('"'));
+    public static Rule Value = Node(Recursive(() =&gt; String | Number | Object | Array | True | False | Null));
+    public static Rule Name = Node(String);
+    public static Rule Pair = Node(Name + WS + CharToken(':') + Value + WS);
+    public static Rule Members = Node(CommaDelimited(Pair));
+    public static Rule Elements = Node(CommaDelimited(Value));
+    public static Rule Array = Node(CharToken('[') + Elements + WS + CharToken(']'));
+    public static Rule Object = Node(CharToken('{') + Members + WS + CharToken('}'));
+    static JsonGrammar() { InitGrammar(typeof(JsonGrammar)); }
+}
+</pre>
+<p>Next we need write a function to convert from parse tree to a JsonObject. We will follow the same basic form as the ArithmeticEvaluator example. We write only one "Eval" function that can return any valid JSON type (e.g. number, string, array, etc.) depending on the node argument.</p> 
+<pre lang="cs">
+public static dynamic Eval(Node n)
+{
+    switch (n.Label)
+    {
+        case "Name": return Eval(n[0]);
+        case "Value": return Eval(n[0]);
+        case "Number": return Eval(n[0]);
+        case "Integer": return Int32.Parse(n.Text);
+        case "Float": return Double.Parse(n.Text);
+        case "String": return n.Text.Substring(1, n.Text.Length - 2);
+        case "True": return true;
+        case "False": return false;
+        case "Null": return new JsonObject();
+        case "Array": return n.Nodes.Select(Eval).ToList();
+        case "Object":
+            {
+                var r = new JsonObject();
+                foreach (var pair in n.Nodes)
+                {
+                    var name = pair[0].Text;
+                    var value = Eval(pair[1]);
+                    r[name] = value;
+                }
+                return r;
+            }
+        default:
+            throw new Exception("Unexpected node type " + n.Label);
+    }
+}
+</pre>
+<h2>Writing a Simple JavaScript Interpreter</h2>
+<p>The simplest kind of interpreter is little more than a wrapper around an evaluation function. Unlike the JSON and Arithmetic evaluators, a programming language evaluator has to manage variable and function names in what is known as the environment.</p>
+<h2>Writing a JavaScript Grammar</h2>
+<p>It makes sense to derive a JavaScript grammar from the JSON grammar. Some rules have to be rewritten, such as for defining object and array literals so that arbitrary expressions can be placed in objects and arrays, not just literals.</p> 
+<p>Here is the JavaScript grammar:</p>
+<pre lang="cs">
+public class JavaScriptGrammar : JsonGrammar
+{
+    // Recursive rules defined at the top
+    public static Rule RecExpr = Recursive(() =&gt; Expr);
+    public static Rule RecStatement = Recursive(() =&gt; Statement);
+    public static Rule Literal = Recursive(() =&gt; String | Integer | Float | Object | Array | True | False | Null);
+
+    // Redefine Identifier so that it creates nodes in the parse tree
+    public new static Rule Identifier = Node(SharedGrammar.Identifier);
+
+    // The following rules are redefined from JsonGrmmar because arbitrary expressions are allowed, not just literals
+    public static Rule PairName = Identifier | DoubleQuotedString | SingleQuotedString;
+    public new static Rule Pair = Node(PairName + WS + CharToken(':') + RecExpr + WS);
+    public new static Rule Array = Node(CharToken('[') + CommaDelimited(RecExpr) + WS + CharToken(']'));
+    public new static Rule Object = Node(CharToken('{') + CommaDelimited(Pair) + WS + CharToken('}'));
+
+    // Function expressions
+    public static Rule ParamList = Node(Parenthesize(CommaDelimited(Identifier + WS)));
+    public static Rule NamedFunc = Node(Keyword("function") + Identifier + WS + ParamList + RecStatement);
+    public static Rule AnonFunc = Node(Keyword("function") + ParamList + RecStatement);
+    public static Rule Function = NamedFunc | AnonFunc;
+
+    // Expression rules 
+    public static Rule ArgList = Node(CharToken('(') + CommaDelimited(RecExpr) + CharToken(')'));
+    public static Rule Index = Node(CharToken('[') + RecExpr + CharToken(']'));
+    public static Rule Field = Node(CharToken('.') + Identifier);
+    public static Rule PrefixOp = Node(MatchStringSet("! - ~"));
+    public static Rule ParenExpr = Node(CharToken('(') + RecExpr + WS + CharToken(')'));
+    public static Rule NewExpr = Node(Keyword("new") + Recursive(() =&gt; PostfixExpr));
+    public static Rule LeafExpr = ParenExpr | NewExpr | Function | Literal | Identifier;
+    public static Rule PrefixExpr = Node(PrefixOp + Recursive(() =&gt; PrefixOrLeafExpr));
+    public static Rule PrefixOrLeafExpr = PrefixExpr | LeafExpr;
+    public static Rule PostfixOp = Field | Index | ArgList;
+    public static Rule PostfixExpr = Node(PrefixOrLeafExpr + WS + OneOrMore(PostfixOp + WS));
+    public static Rule UnaryExpr = PostfixExpr | PrefixOrLeafExpr;
+    public static Rule BinaryOp = Node(MatchStringSet("&lt;= &gt;= == != &lt;&lt; &gt;&gt; &amp;&amp; || &lt; &gt; &amp; | + - * % /"));
+    public static Rule BinaryExpr = Node(UnaryExpr + WS + OneOrMore(BinaryOp + WS + UnaryExpr));
+    public static Rule AssignOp = Node(MatchStringSet("&amp;&amp;= ||= &gt;&gt;= &lt;&lt;= += -= *= %= /= &amp;s= |= ^= ="));
+    public static Rule AssignExpr = Node((Identifier | PostfixExpr) + WS + AssignOp + WS + RecExpr);
+    public static Rule TertiaryExpr = Node((AssignExpr | BinaryExpr | UnaryExpr) + WS + CharToken('?') + RecExpr + CharToken(':') + RecExpr + WS);
+    public static Rule Expr = Node((TertiaryExpr | 	AssignExpr | BinaryExpr | UnaryExpr) + WS);
+
+    // Statement rules
+    public static Rule Block = Node(CharToken('{') + ZeroOrMore(RecStatement) + CharToken('}'));
+    public static Rule VarDecl = Node(Keyword("var") + Identifier + WS + Opt(Eq + Expr) + Eos);
+    public static Rule While = Node(Keyword("while") + Parenthesize(Expr) + RecStatement);
+    public static Rule For = Node(Keyword("for") + Parenthesize(VarDecl + Expr + WS + Eos + Expr + WS) + RecStatement);
+    public static Rule Else = Node(Keyword("else") + RecStatement);
+    public static Rule If = Node(Keyword("if") + Parenthesize(Expr) + RecStatement + Opt(Else));
+    public static Rule ExprStatement = Node(Expr + WS + Eos);
+    public static Rule Return = Node(Keyword("return") + Opt(Expr) + WS + Eos);
+    public static Rule Empty = Node(WS + Eos);
+    public static Rule Statement = Block | For | While | If | Return | VarDecl | ExprStatement | Empty;
+
+    // The top-level rule
+    public static Rule Script = Node(ZeroOrMore(Statement) + WS + End);
+
+    // Grammar initialization
+    static JavaScriptGrammar()
+    {
+        InitGrammar(typeof(JavaScriptGrammar));
+    }
+}
+</pre>
+<h2>Writing a Source Code Printer</h2>
+<p>Given a parse tree generated from a JavaScript parser, one of the simplest tools we can build is a source code printer. This is a useful intermediate step when developing a language for validating that the parser is working as expected.</p>
+<p>A source code printer (or pretty printer) prints a formatted representation of the input AST. This can be useful in text editors, or when doing source to source translation.</p>
+<p>The "Printer" class in the Jigsaw library facilitates writing custom source translators. By deriving from Printer you only need to override the "Print(Node)" function. Using the various functions in the Printer class you can generate output using depending on the kind of node received.</p> 
+<p>The following snippet of code is taken from the JavaScriptSourcePrinter class.</p> 
+<pre lang="cs">
+switch (n.Label)
+{
+    case "Script":
+        return Print(n.Nodes);
+    case "Statement":
+        return Print(n[0]);
+    case "Empty":
+        return Print(";");
+    case "Return":
+        return (n.Count &gt; 0) 
+            ? Print("return ").Print(n[0]).Print(";")
+            : Print("return;");
+    case "ExprStatement":
+        return Print(n[0]).Print(";");
+    case "If":
+        Print("if (").Print(n[0]).Print(")").Indent().Print(n[1]).Unindent();
+        return n.Count &gt; 2 
+            ? Print(n[2]) 
+            : this;
+    case "Else":
+        return Print("else").Indent().Print(n[0]).Unindent();
+    //...
+}
+</pre>
+<h2>Writing a Tree Transformer</h2>
+<p>The JavaScript parser works well but certain parts of the parse tree will be hard to work with during evaluation:</p> 
+<ul>
+<li>Chained binary expressions are not separated. For example when the BinaryExpr rule encounters 3 + 4 * 5 it will treat one node with 5 children. (3, +, 4, *, 5) instead of (3, +, (4, * ,5)) which would be easier.</li>
+<li>Chained postfix operators are not separated. For  f(1)["hello"].field will be parsed by PostfixExpr rule as "(f, (1), ["hello"], .field)" whereas it would be easier if it was prefer (((f, (1)), ["hello"]), .field)</li>
+</ul>
+<p>To simplify the evaluator (and possibly other tools) a class derived from TreeTransformer called "JSTransformer" is created. This transformer does a number of tasks:</p>
+<ul><li>Converts postfix expressions into one of the following types of expression:
+<ul>
+<li>FieldExpr – An expression followed by a "." and an identifier. For example "myobject.myfield".</li>
+<li>IndexExpr – An expression followed by an index operator. For example "myarray[index]".</li>
+<li>CallExpr – An expression followed by an argument list. For example "myfunc(arg0, arg1)".</li>
+<li>MethodCallExpr – An FieldExpr followed by an argument list. For example "myobject. myfunc(arg0, arg1)".</li>
+</ul></li>
+<li>Separates long binary expressions according to precedence rules.</li> 
+<li>Converts named functions (e.g. function f(x) { } into variable declarations of the form: var f = function(x) { }</li>
+<li>Converts "while" loops into "for" loops.</li>
+<li>Rewrites special assignment operators, so that the evaluator only has to consider basic assignment operator. For example "a += b" becomes "a = a + b".</li>
+<li>Nodes which only ever have one child, are replaced by the child node.</li>
+</ul>
+<h2>Managing the Environment</h2>
+<p>When writing an evaluator for a programming language we have to track values associated with names (e.g. function names, variable names, argument names). The binding of values to names is collectively called the environment. In Jigsaw the environment is managed by a class called VarBindings. You can see an example of its usage in the "Evaluator" base class.</p>
+<p>A VarBindings class is a recursively defined associative list class. It contains a name and its associated value, along with a pointer to another VarBindings class. This representation of an environment is not particularly efficient, but it is extremely convenient to use. </p>
+<p>In JavaScript when a variable is declared it is added to the list of the variable bindings. When a "block" goes out of scope, all names declared in that scope are unbound. In Jigsaw this is done in a function called "EvalScoped". The EvalScoped function takes another function as an argument. It takes a snapshot of the environment, executes the function, and then restores the environment. </p>
+<pre lang="cs">
+public dynamic EvalScoped(Func&lt;dynamic&gt; f)
+{
+    var e = env;
+    var r = f();
+    env = e;
+    return r;
+}</pre>
+<p>
+In JavaScript when a new name is first used, a binding is created automatically. This might not have been a great language design decision, since it increase the chances of programmer error, but we respect it in our implementation. This logic is handled in a function called AddOrCreateBinding().</p>
+<h2>JavaScript Functions</h2>
+<p>Unlike JSON when implementing a JavaScript interpreter we have to consider what data structure to use to represent functions.  We need to JavaScript functions are closures. This means the function can refer to variables not declared within the function itself. Such variables are called "free variables".</p>
+<p>One of the simplest methods to implement a closure is to use a copy of the environment from when the function value is declared. When the function is applied to its arguments (i.e. called) the current evaluator’s environment is temporarily substituted with the version stored with function.</p> 
+<p>The implementation of the JavaScript function used in Jigsaw is shown here:</p>
+<pre>
+public class JSFunction
+{
+    public static int FuncCount = 0;
+    public Node node;
+    public VarBindings capture;
+    public Node parms;
+    public string name = String.Format("_anonymous_{0}", FuncCount++);
+    public Node body;
+    
+    public JSFunction(VarBindings c, Node n) { 
+        capture = c;  
+        node = n;
+        if (n.Count == 3)
+        {
+            name = n[0].Text;
+            parms = n[1];
+            body = n[2];
+        }
+        else
+        {
+            parms = n[0];
+            body = n[1];
+        }
+    }
+
+    public dynamic Apply(JavaScriptEvaluator e, params dynamic[] args)
+    {
+        var restore = e.env;
+        var originalReturningState = e.isReturning;
+        dynamic result = null;
+
+        try
+        {
+            e.env = capture;
+            e.isReturning = false;
+            int i = 0;
+            foreach (var p in parms.Nodes)
+                e.AddBinding(p.Text, args[i++]);                    
+            e.Eval(body);
+            result = e.result;
+        }
+        finally
+        {
+            e.result = null;
+            e.env = restore;
+            e.isReturning = originalReturningState;
+        }
+        return result;
+    }
+}
+</pre>
+<h2>Return Statements</h2>
+<p>When evaluating a series of statements it is possible that a "return" statement is encountered. In this case we need to store the return value and exit the enclosing function. </p>
+<p>In the JavaScript evaluators we set a flag (isReturning). This flag is checked whenever a compound statement is executed (e.g. for loops, while loops, etc.), to see whether the execution of later statements should be skipped. We chose this approach because it is simple to understand and easy to implement.</p>
+<p>Another approach which is even simpler would have been to throw an exception. This however would have made debugging harder and would have had a significant negative impact on performance.</p>
+<p>A more efficient approach to this problem is to rewrite the parse tree so that there is only one "return" statement at the end of a function. This is a bit complicated since it requires adding additional variables and rewriting any loop conditions, but the complexity would be moved out of the evaluator function and into the transformer. </p>
+<h2>The Evaluation Function</h2>
+<p>The JavaScript evaluation function is similar in structure to the JsonObject.Eval() function with the following differences:</p>
+<ul>
+<li>The node tree is transformed into a form that is a bit easier to evaluate.</li>
+<li>Variables are managed in a VarBindings object</li>
+<li>A new data type (JSFunction) is introduced</li>
+</ul>
+<p>The evaluation function is too long to list here, but here is a representative snippet:</p>
+<pre lang="cs">
+    case "AnonFunc":
+        // Creates an unnamed function
+        return new JSFunction(env, n);
+    case "Block":
+        // Execute a sequence of instructions
+        return EvalScoped(() =&gt; EvalNodes(n.Nodes));
+    case "If":
+        // Check if the condition is false (or NULL)
+        if (Eval(n[0]) ?? false)
+            // Execute first statement
+            return Eval(n[1]);
+        else if (n.Count &gt; 2)
+            // Execute else statement if the condition is false, and it exists 
+            return Eval(n[2]);
+        else
+            // By default reutrn the result 
+            return null;
+    case "VarDecl":
+        // Variable declaration
+        // It may or may not be initialized
+        return AddBinding(n[0].Text, n.Count &gt; 1 ? Eval(n[1]) : null);
+    case "Empty":
+        // An empty statement means we do nothing
+        return null;
+    case "ExprStatement":
+        return Eval(n[0]);
+</pre>
+<h2>Extending the Primitive Set</h2>
+<p>The evaluator included implements only basic operators, and has a single built-in function "alert". Built-in functions are implemented using the JSPrimitive class and are added to the global environment when an evaluator is initialized.</p>
+<pre lang="cs">
+public JavaScriptEvaluator()
+{
+    // This is where you could add all sorts of primitive objects and functions. Or don't. Fine.
+    AddBinding("alert", new JSPrimitive(args =&gt; { Console.WriteLine(args[0]); }));
+}
+</pre>
+<h2>A JavaScript to Expression Tree Compiler</h2>
+<p>The Expression class in the System.Linq.Expressions namespace (also known as an expression tree) is a convenient way to dynamically create new functions at run-time. By converting a parse tree into an expression tree, we can then use the Expression.Compile function to create delegates at run-time that can be invoked using DynamicInvoke().</p>
+<p>Generating Expression trees is similar to evaluation just that instead of returning a dynamic value for each node we return an instance of the Expression class. An expression compiler can be derived from a the ExpressionCompiler utility class.</p>
+<p>The sample JavaScript to expression compiler in the Jigsaw library is called JavaScriptExpressionCompiler.</p>
+<p>The JavaScriptExpressionCompiler provides two compilation functions, one that takes a string, and the other takes a node.</p>
+<pre lang="cs">
+public static Delegate CompileLambda(string s)
+{
+    var nodes = JavaScriptGrammar.AnonFunc.Parse(s);
+    return CompileLambda(nodes[0]);
+}
+
+public static Delegate CompileLambda(Node n)
+{
+    n = JavaScriptTransformer.Transform(n);
+    var compiler = new JavaScriptExpressionCompiler();
+    var expr = (LambdaExpression)compiler.ToExpr(n);
+    if (expr == null) return null;
+    return expr.Compile();
+}
+</pre>
+<p>Note that like the evaluation function the transform is used to simplify the parse tree before entering into the "ToExpr" function which converts each Node into an Expression.</p>
+<h2>Next Steps</h2>
+<p>There are a number of JavaScript features not implemented in the JavaScript interpreter and expression compiler. For further study you might want to extend the samples provided to implement more features, or add new features that you may find interesting.</p>
+<p>Hopefully you have also learned enough to start experimenting with creating your own languages.</p>
+<p>There are several other samples included with the Jigsaw library that you may also find interesting:</p>
+<ul>
+<li>ILCompiler.cs – An implementation of an IL assembly code.</li>
+<li>SchemeExpressionCompiler.cs – A simple expression compiler that works for a small subset of the Scheme language. Scheme is a dialect of LISP.</li>
+<li>CatEvaluator.cs – Contains an evaluator for the Cat language, a simple functional stack-based language.</li> 
+</ul>
+<h2>Final Words</h2>
+<p>This article only scratches the surface of implementing programming languages. If you liked this article and would like to learn more about programming language implementation I am working on a book with the working title "Implementing Programming Languages in C#". Please email me at <a href="mailto:cdiggins@gmail.com">cdiggins@gmail.com</a> if you would like to learn more, possibly become a beta reviewer, or just to show your support. Thanks!</p>
+</body>
+</html>
+
+

@@ -9,18 +9,17 @@ namespace Diggins.Jigsaw
     {
         new public static Rule Integer = Node(SharedGrammar.Integer);
         new public static Rule Float = Node(SharedGrammar.Float);
-        public static Rule Number = Node(Integer | Float);
         public static Rule True = Node(MatchString("true"));
         public static Rule False = Node(MatchString("false"));
         public static Rule Null = Node(MatchString("null"));
-        public static Rule UnicodeChar = Node(MatchString("\\u") + HexDigit + HexDigit + HexDigit + HexDigit);
-        public static Rule ControlChar = Node(MatchChar('\\') + CharSet("\"\\/bfnt"));
-        public static Rule PlainChar = Node(ExceptCharSet("\"\\"));
-        public static Rule Char = Node(UnicodeChar | ControlChar | PlainChar);
-        public static Rule StringChars = Node(ZeroOrMore(Char));
-        public static Rule String = Node(MatchChar('"') + StringChars + MatchChar('"'));
+        public static Rule UnicodeChar = MatchString("\\u") + HexDigit + HexDigit + HexDigit + HexDigit;
+        public static Rule ControlChar = MatchChar('\\') + CharSet("\"\'\\/bfnt");
+        public static Rule DoubleQuotedString = Node(MatchChar('"') + ZeroOrMore(UnicodeChar | ControlChar | ExceptCharSet("\"\\")) + MatchChar('"'));
+        public static Rule SingleQuotedString = Node(MatchChar('\'') + ZeroOrMore(UnicodeChar | ControlChar | ExceptCharSet("'\\")) + MatchChar('\''));
+        public static Rule String = Node(DoubleQuotedString | SingleQuotedString);
+        public static Rule Number = Float | Integer;
         public static Rule Value = Node(Recursive(() => String | Number | Object | Array | True | False | Null));
-        public static Rule Pair = Node(MatchChar('"') + StringChars + MatchChar('"') + WS + CharToken(':') + Value + WS);
+        public static Rule Pair = Node(DoubleQuotedString + WS + CharToken(':') + Value + WS);
         public static Rule Array = Node(CharToken('[') + CommaDelimited(Value) + WS + CharToken(']'));
         public static Rule Object = Node(CharToken('{') + CommaDelimited(Pair) + WS + CharToken('}'));
         static JsonGrammar() { InitGrammar(typeof(JsonGrammar)); }

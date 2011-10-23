@@ -9,7 +9,7 @@ namespace Diggins.Jigsaw
     {
         public static void Test(string input, params object[] args)
         {            
-            var r = SchemeCompiler.CompileLambda(input);
+            var r = SchemeExpressionCompiler.CompileLambda(input);
             r.DynamicInvoke(args);
         }
 

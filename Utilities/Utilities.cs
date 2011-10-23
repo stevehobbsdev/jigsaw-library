@@ -34,6 +34,15 @@ namespace Diggins.Jigsaw
             }
         }
 
+        public static void TimeExecution(Action a)
+        {
+            Console.WriteLine("Starting execution");
+            var start = DateTime.Now;
+            a();
+            var elapsed = DateTime.Now - start;
+            Console.WriteLine("Time of execution is {0} sec, {1} msec", elapsed.TotalSeconds, elapsed.Milliseconds);
+        }
+
         public static void RunMain(Assembly asm, params string[] args)
         {
             MethodInfo main = null;
@@ -42,6 +51,17 @@ namespace Diggins.Jigsaw
                     if (mi.Name == "Main")
                        main = mi;
             main.Invoke(null, new object[] { args });
+        }
+
+        public static string Unquote(string s)
+        {
+            return s.Substring(1, s.Length - 2);
+        }
+
+        public static void Test()
+        {
+            Func<object, object> f = x => x;
+            Delegate d = f;
         }
     }
 }

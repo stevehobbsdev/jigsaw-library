@@ -19,10 +19,16 @@ namespace Diggins.Jigsaw
                 case "Number":      return Eval(n[0]);
                 case "Integer":     return Int64.Parse(n.Text);
                 case "Float":       return Double.Parse(n.Text);
-                case "NegatedExpr": return -Eval(n[0]);
+                case "PrefixExpr":
+                    switch (n[0].Text)
+                    {
+                        case "-": return -Eval(n[1]);
+                        case "!": return !Eval(n[1]);
+                        case "~": return ~Eval(n[1]);
+                        default: throw new Exception(n[0].Text);
+                    }
                 case "ParanExpr":   return Eval(n[0]);
                 case "Expression":
-                    PrecedenceResolution.SplitLongExpression(n);
                     switch (n.Count)
                     {
                         case 1: 

@@ -6,8 +6,38 @@ using System.Dynamic;
 
 namespace Diggins.Jigsaw
 {
-    public class JsonObject : DynamicObject    
+    /// <summary>
+    /// This is a dynamic class for represent JSON object data. It can be used 
+    /// as a "dynamic" variable, and can be constructed from a string using the static Parse
+    /// method. 
+    /// There is additional built-in support for implementing features of JavaScript 
+    /// such as prototype chain look-up and cloning.
+    /// </summary>
+    public class JsonObject : DynamicObject, IEnumerable<KeyValuePair<string, object>>
     {
+        #region 
+        ExpandoObject x = new ExpandoObject();
+        #endregion
+
+        public JsonObject()
+        {
+        }
+
+        public JsonObject(JsonObject prototype)
+        {
+            this["prototype"] = prototype;
+        }
+
+        public JsonObject Clone()
+        {
+            return new JsonObject(this);
+        }
+
+        public void Add(string name, dynamic value)
+        {
+            this[name] = value;
+        }
+
         static string Unquote(string s)
         {
             int n = s.Length;
@@ -15,10 +45,6 @@ namespace Diggins.Jigsaw
                 ? s.Substring(1, n - 2)
                 : s;
         }
-
-        public static readonly JsonObject Null = new JsonObject();
-
-        ExpandoObject x = new ExpandoObject();
 
         public IDictionary<string, Object> AsDictionary
         {
@@ -34,7 +60,14 @@ namespace Diggins.Jigsaw
         {
             get 
             {
-                return AsDictionary[Unquote(name)];
+                if (HasField(name))
+                    return AsDictionary[Unquote(name)];
+                else if (HasField("prototype")) {
+                    dynamic d = AsDictionary["prototype"];
+                    return d[name];
+                }
+                else
+                    throw new Exception(String.Format("Could not find the name {0} or a prototype", name));
             }
             set
             {
@@ -112,12 +145,16 @@ namespace Diggins.Jigsaw
         {
             switch (n.Label)
             {
-                case "Name":
-                    return Eval(n[0]);
-                case "Value":
-                    return Eval(n[0]);
-                case "Number":
-                    return Eval(n[0]);
+                case "Name": return Eval(n[0]);
+                case "Value": return Eval(n[0]);
+                case "Number": return Eval(n[0]);
+                case "Integer": return Int32.Parse(n.Text);
+                case "Float": return Double.Parse(n.Text);
+                case "String": return n.Text.Substring(1, n.Text.Length - 2);
+                case "True": return true;
+                case "False": return false;
+                case "Null": return new JsonObject();
+                case "Array": return n.Nodes.Select(Eval).ToList();
                 case "Object":
                     {
                         var r = new JsonObject();
@@ -129,20 +166,6 @@ namespace Diggins.Jigsaw
                         }
                         return r;
                     }
-                case "Array":
-                    return n.Nodes.Select(Eval).ToList();
-                case "Integer":
-                    return Int32.Parse(n.Text);
-                case "Float":
-                    return Double.Parse(n.Text);
-                case "String":
-                    return n.Text.Substring(1, n.Text.Length - 2);
-                case "True":
-                    return true;
-                case "False":
-                    return false;
-                case "Null":
-                    return new JsonObject();
                 default:
                     throw new Exception("Unexpected node type " + n.Label);
             }
@@ -171,6 +194,16 @@ namespace Diggins.Jigsaw
         {
             var nodes = JsonGrammar.Object.Parse(s);
             return Eval(nodes[0]);
+        }
+
+        public IEnumerator<KeyValuePair<string, dynamic>> GetEnumerator()
+        {
+            return AsDictionary.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return AsDictionary.GetEnumerator();
         }
     }
 }

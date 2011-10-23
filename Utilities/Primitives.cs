@@ -44,7 +44,9 @@ namespace Diggins.Jigsaw
         public static dynamic pair(dynamic a, dynamic b) { return List.Cons(a, b); }
         public static dynamic type(dynamic a) { return a.GetType(); }
         public static void print(dynamic a) { Console.Write(a); }
-        public static dynamic tostring(dynamic a) { return a.ToString(); } 
+        public static dynamic tostring(dynamic a) { return a.ToString(); }
+        public static dynamic index(dynamic obj, dynamic index) { return obj[index]; }
+        public static dynamic dynamic_invoke(dynamic func, dynamic[] args) { return func.DynamicInvoke(args); }
         
         public static MethodInfo GetMethod(string s)
         {
@@ -62,7 +64,7 @@ namespace Diggins.Jigsaw
             }
         }
 
-        public static string BinaryOperatorToMethodName(string s)
+        public static string GetMethodNameFromBinaryOperator(string s)
         {
             switch (s)
             {
@@ -95,7 +97,7 @@ namespace Diggins.Jigsaw
 
         public static MethodInfo GetMethodFromBinaryOperator(string s)
         {
-            return GetMethod(BinaryOperatorToMethodName(s));
+            return GetMethod(GetMethodNameFromBinaryOperator(s));
         }
     }
 }

@@ -10,42 +10,64 @@ namespace Diggins.Jigsaw
     {
         private readonly string ReturnTargetName = "$return";
 
-        public Context Context = new Context();
+        VarBindings env = new VarBindings();
 
         public static Expression Noop
         {
             get { return Expression.Call(null, typeof(Primitives).GetMethod("noop")); }
         }
 
-        public Expression AddToContext(ParameterExpression param)
+        public Expression AddBinding(ParameterExpression param)
         {
-            Context = Context.AddContext(param.Name, param);
-            return param;
+            return AddBinding(param.Name, param);
+        }
+
+        public Expression AddBinding(string name, Expression exp)
+        {
+            env = env.AddBinding(name, exp);
+            return exp;
         }
 
         public Expression Lookup(String s)
         {
-            return (Expression)Context[s];
+            return (Expression)env[s];
         }
 
         public Expression ScopedExpr(Func<Expression> x)
         {
-            Context old = Context;
+            VarBindings old = env;
             var result = x();
-            Context = old;
+            env = old;
             return result;
         }
 
         public LabelTarget GetReturnTarget()
         {
-            return (LabelTarget)Context.Find(ReturnTargetName);
+            var label = (LabelExpression)env.Find(ReturnTargetName);
+            return label.Target;
         }
 
-        public LabelTarget CreateReturnTarget()
+        public LabelExpression CreateReturnTarget()
         {
-            var target = Expression.Label();
-            Context = Context.AddContext(ReturnTargetName, target);
-            return target;
+            var target = Expression.Label(typeof(Object), ReturnTargetName);
+            var label = Expression.Label(target, Expression.Constant(null));
+            env = env.AddBinding(ReturnTargetName, label);
+            return label;
+        }
+
+        public static Expression CompileIndexExpr(Expression self, Expression index)
+        {
+            return Expression.Call(null, Primitives.GetMethod("index"), new Expression[] { self, index });
+        }
+
+        public static Expression CompileCallExpr(Expression func, IEnumerable<Expression> args)
+        {
+            return Expression.Call(null, Primitives.GetMethod("dynamic_invoke"), args);
+        }
+
+        public Expression CompileForLoop(Expression init, Expression cond, Expression step, Expression body)
+        {
+            throw new NotImplementedException();
         }
 
         public Expression CreateBinaryExpression(string op, Expression left, Expression right)
@@ -94,29 +116,31 @@ namespace Diggins.Jigsaw
                     return Expression.ModuloAssign(left, right);
                 case ">>=":
                     return Expression.RightShiftAssign(left, right);
-                case "<<=":
+                case "<<=": 
                     return Expression.LeftShiftAssign(left, right);
                 default:
                     return null;
             }
         }
 
-        public LambdaExpression CreateStatementLambda(ParameterExpression[] ps, Func<Expression> bodyfunc)
+        public LambdaExpression CreateStatementLambda(IEnumerable<ParameterExpression> paramlist, Func<Expression> bodyfunc)
         {
             return (LambdaExpression)ScopedExpr(() =>
-            {                
-                foreach (var p in ps) AddToContext((ParameterExpression)p);
+            {
+                var ps = paramlist.ToArray();
+                foreach (var p in ps) AddBinding(p);
                 var returnTarget = CreateReturnTarget();
-                var body = Expression.Block(ps, bodyfunc(), Expression.Label(returnTarget));
+                var body = Expression.Block(typeof(Object), bodyfunc(), returnTarget);
                 return Expression.Lambda(body, ps);
             });
         }
 
-        public LambdaExpression CreateExpressionLambda(ParameterExpression[] ps, Func<Expression> bodyfunc)
+        public LambdaExpression CreateExpressionLambda(IEnumerable<ParameterExpression> paramlist, Func<Expression> bodyfunc)
         {
             return (LambdaExpression)ScopedExpr(() =>
             {
-                foreach (var p in ps) AddToContext(p);
+                var ps = paramlist.ToArray();
+                foreach (var p in ps) AddBinding(p);
                 return Expression.Lambda(bodyfunc(), ps);
             });
         }
