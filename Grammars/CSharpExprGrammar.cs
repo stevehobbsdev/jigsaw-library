@@ -9,10 +9,12 @@ namespace Diggins.Jigsaw
     {
         public static Rule RecExpr = Recursive(() => Expr);
 
+        public static Rule Initializer = Node(Eq + RecExpr);
+        public static Rule VarDecl = Node(TypeExpr + Identifier + WS + Opt(Initializer) + Eos);
         public static Rule Block = Node(CharToken('{') + ZeroOrMore(Recursive(() => Statement)) + WS + CharToken('}'));
         public static Rule ExprStatement = Node(RecExpr + WS + Eos);
         public static Rule ReturnStatement = Node(Keyword("return") + Opt(RecExpr) + WS + Eos);
-        public static Rule Statement = Node(Block | ExprStatement | ReturnStatement);
+        public static Rule Statement = Node(Block | VarDecl | ExprStatement | ReturnStatement);
 
         public static Rule SymbolChar = CharSet("~!^&*<>/+-=%?"); 
         public static Rule TypeName = Node(Identifier + WS + ZeroOrMore(Dot + Identifier + WS));

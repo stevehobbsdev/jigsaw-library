@@ -22,110 +22,75 @@ namespace Diggins.Jigsaw
             public dynamic G;
         }
 
-        public class Environment
+        public class Callable : Attribute { }
+
+        public CatEvaluator()
         {
-            public class Callable : Attribute { }
-
-            public Environment()
-            {
-                foreach (var mi in typeof(Primitives).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static))
-                    Functions.Add(mi.Name, mi);
+            foreach (var mi in typeof(Primitives).GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static))
+                Functions.Add(mi.Name, mi);
                 
-                foreach (var mi in GetType().GetMethods())
-                    if (mi.GetCustomAttributes(typeof(Callable), true).Length > 0)
-                        Functions.Add(mi.Name, mi);
-            }
+            foreach (var mi in GetType().GetMethods())
+                if (mi.GetCustomAttributes(typeof(Callable), true).Length > 0)
+                    Functions.Add(mi.Name, mi);
+        }
 
-            public Dictionary<string, dynamic> Functions = new Dictionary<string, dynamic>();
+        public Dictionary<string, dynamic> Functions = new Dictionary<string, dynamic>();
 
-            public Stack<dynamic> Values = new Stack<dynamic>();
+        public Stack<dynamic> Values = new Stack<dynamic>();
             
-            public dynamic Pop() { return Values.Pop(); }            
-            public dynamic Peek { get { return Values.Peek(); }  }
-            public void Push(dynamic o) { Values.Push(o); }
+        public dynamic Pop() { return Values.Pop(); }            
+        public dynamic Peek { get { return Values.Peek(); }  }
+        public void Push(dynamic o) { Values.Push(o); }
 
-            [Callable] public void zap() { Pop(); }
-            [Callable] public void swap() { var a = Pop(); var b = Pop(); Push(a); Push(b); }
-            [Callable] public void apply() { Apply(Pop()); }
-            [Callable] public void dup() { Push(Peek); }
-            [Callable] public void quote() { Push(new QuotedValue(Pop())); }
-            [Callable] public void compose() { Push(new Composition(Pop(), Pop())); }
-            [Callable] public void isnil() { Push(List.Empty == Peek()); }
-            [Callable] public void cons() { Push(List.Cons(Pop(), Pop())); } 
-            [Callable] public void uncons() { var xs = Pop(); Push(xs.Tail); Push(xs.Head); } 
-            [Callable] public void @while() { var body = Pop(); while (Pop()) body.Apply(this); }
-            [Callable] public void list() { var q = Pop(); var stk = Values; Values = new Stack<dynamic>(); Apply(q); stk.Push(List.Build(Values)); Values = stk; }
+        [Callable] public void zap() { Pop(); }
+        [Callable] public void swap() { var a = Pop(); var b = Pop(); Push(a); Push(b); }
+        [Callable] public void apply() { Apply(Pop()); }
+        [Callable] public void dup() { Push(Peek); }
+        [Callable] public void quote() { Push(new QuotedValue(Pop())); }
+        [Callable] public void compose() { Push(new Composition(Pop(), Pop())); }
+        [Callable] public void isnil() { Push(List.Empty == Peek()); }
+        [Callable] public void cons() { Push(List.Cons(Pop(), Pop())); } 
+        [Callable] public void uncons() { var xs = Pop(); Push(xs.Tail); Push(xs.Head); } 
+        [Callable] public void @while() { var body = Pop(); while (Pop()) body.Apply(this); }
+        [Callable] public void list() { var q = Pop(); var stk = Values; Values = new Stack<dynamic>(); Apply(q); stk.Push(List.Build(Values)); Values = stk; }
             
-            public void Eval(Node n) 
+        public void Eval(Node n) 
+        {
+            switch (n.Label)
             {
-                switch (n.Label)
-                {
-                    case "Integer": 
-                        Push(Int32.Parse(n.Text)); 
-                        break;
-                    case "String": 
-                        Push(n.Text.Substring(1, n.Text.Length - 2)); 
-                        break;
-                    case "Quotation": 
-                        Push(n); 
-                        break;
-                    case "Terms": 
-                        foreach (var t in n.Nodes) 
-                            Eval(t); 
-                        break;
-                    case "Term": 
-                        Eval(n.Nodes[0]); 
-                        break;
-                    case "Atom":
-                        Eval(n.Nodes[0]);
-                        break;
-                    case "Symbol":
-                        if (!Functions.ContainsKey(n.Text))
-                            throw new Exception("Unrecognized symbol " + n.Text);
-                        Eval(Functions[n.Text]); 
-                        break;
-                    case "Define": 
-                        Functions.Add(n.GetNode("Symbol").Text, n.GetNode("Terms")); 
-                        break;
-                    default: 
-                        throw new Exception("Can't evaluate node of type " + n.Label);
-                }
+                case "Integer": Push(Int32.Parse(n.Text)); break;
+                case "String": Push(n.Text.Substring(1, n.Text.Length - 2)); break;
+                case "Quotation": Push(n); break;
+                case "Terms": foreach (var t in n.Nodes) Eval(t); break;
+                case "Term": Eval(n.Nodes[0]); break;
+                case "Atom": Eval(n.Nodes[0]); break;
+                case "Symbol": Eval(Functions[n.Text]); break;
+                case "Define": Functions.Add(n.GetNode("Symbol").Text, n.GetNode("Terms")); break;
+                default: throw new Exception("Can't evaluate node of type " + n.Label);
             }
+        }
 
-            public void Eval(MethodInfo mi)
-            {
-                var args = new List<dynamic>();
-                for (int i = 0; i < mi.GetParameters().Length; ++i)
-                    args.Add(Pop());                
-                var result = mi.Invoke(this, args.ToArray());
-                if (mi.ReturnType != typeof(void))
-                    Push(result);
-            }
+        public void Eval(MethodInfo mi)
+        {
+            var args = new List<dynamic>();
+            for (int i = 0; i < mi.GetParameters().Length; ++i)
+                args.Add(Pop());                
+            var result = mi.Invoke(this, args.ToArray());
+            if (mi.ReturnType != typeof(void))
+                Push(result);
+        }
 
-            public void Apply(Node n)
-            {
-                if (n.Label != "Quotation") 
-                    throw new Exception("Expected a quotation on the stack");
-                Eval(n.GetNode("Terms"));
-            }
-
-            public void Apply(Composition c)
-            {
-                Apply(c.F);
-                Apply(c.G);
-            }
-
-            public void Apply(QuotedValue q)
-            {
-                Push(q.Value);
-            }
+        public void Eval(List xs)
+        {
+            for (; !xs.IsEmpty; xs = xs.Tail)
+                Eval(xs.Head);            
         }
 
         public static Stack<dynamic> Eval(Node node)
         {
-            var env = new Environment();
-            env.Eval(node);
-            return env.Values;
+            var cat = new CatEvaluator();
+            cat.Eval(node);
+            return cat.Values;
         }
 
         public static Stack<dynamic> Eval(string s)
