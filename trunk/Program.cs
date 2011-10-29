@@ -21,6 +21,7 @@ namespace Diggins.Jigsaw
 
         static void Main(string[] args)
         {
+            /*
             ArithmeticTests.Tests();
             SExprTests.Tests();
             JsonTests.Tests();
@@ -31,8 +32,11 @@ namespace Diggins.Jigsaw
             EmbeddedScheme.Tests();
             CodeDOMCompilerTests.Tests();
             CSharpFunctionCompilerTests.Tests();
+             * */
             JavaScriptTests.Tests();
             CodeProjectArticleSnippets.Tests();
+
+            SimpleVM.Test();
             Console.WriteLine("And that's it. Press any key to go home ...");
             Console.ReadKey();
         }

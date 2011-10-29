@@ -71,11 +71,11 @@
     <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
     <Compile Include="Evaluators\Evaluator.cs" />
     <Compile Include="Evaluators\JavaScriptEvaluator.cs" />
+    <Compile Include="Sandbox\SimpleVM.cs" />
     <Compile Include="Tests\JavaScriptCompilerTests.cs" />
     <Compile Include="Transformers\TreeTransformer.cs" />
     <Compile Include="Printers\JavaScriptSourcePrinter.cs" />
     <Compile Include="Printers\Printer.cs" />
-    <Compile Include="Sandbox\LeftRecursion.cs" />
     <Compile Include="Tests\CodeProjectArticleSnippets.cs" />
     <Compile Include="Tests\CSharpFunctionCompilerTests.cs" />
     <Compile Include="Tests\GrammarTest.cs" />
@@ -165,7 +165,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="notes.txt" />
+    <Content Include="CodeProjectArticle.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

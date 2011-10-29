@@ -9,8 +9,6 @@ namespace Diggins.Jigsaw
     /// The SECD machine was invented by David Landin and is an abstract machine useful for evaluating 
     /// functional languages. Its basic architecture closely resembles that of modern virtual machines like 
     /// the .NET VM and the Java VM. 
-    /// 
-    /// This implementation uses the Lisp list structure. 
     /// </summary>
     class SECDMachine
     {
@@ -65,6 +63,10 @@ namespace Diggins.Jigsaw
             List frame = Nth(level, Env);
             dynamic val = Nth(pos, frame);
             Push(val);
+        }
+
+        public void SetVariable(List v, dynamic val)
+        {
         }
 
         public void Select(List a, List b) 

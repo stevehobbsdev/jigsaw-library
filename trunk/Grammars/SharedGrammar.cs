@@ -36,6 +36,7 @@ namespace Diggins.Jigsaw
         public static Rule Eq = CharToken('=');
         public static Rule Dot = CharToken('.');
         public static Rule Keyword(string s) { return MatchString(s) + Not(LetterOrDigit) + WS; } 
+        public static Rule KeywordSet(string s) { return Choice(s.Split(' ').Select(x => Keyword(x)).ToArray()); }
         public static Rule Parenthesize(Rule r) { return CharToken('(') + r + WS + CharToken(')'); }
 
         static SharedGrammar() { InitGrammar(typeof(SharedGrammar)); }
