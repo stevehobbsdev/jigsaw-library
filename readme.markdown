@@ -11,12 +11,12 @@ For an introduction on how to use Jigsaw see the article [Implementing Programmi
 Related Project
 There are a large number of related projects on the internet. Some of the most relevant ones are:
 
-Irony - A .NET Language implmentation toolkit
-LLVM - The LLVM Compiler Infrastructure project (C++)
-NRefactory - C# and VB parsing engine with semantic analysis.
-ANTLR - Parser Generator
-PEG Sharp - A C# packrat PEG parser.
-Jurassic - JavaScript Compiler for .NET
-JINT JavaScript Interpreter - A JavaScript interpreter built from the ground up using ANTLR.
+* Irony - A .NET Language implmentation toolkit
+* LLVM - The LLVM Compiler Infrastructure project (C++)
+* NRefactory - C# and VB parsing engine with semantic analysis.
+* ANTLR - Parser Generator
+* PEG Sharp - A C# packrat PEG parser.
+* Jurassic - JavaScript Compiler for .NET
+* JINT JavaScript Interpreter - A JavaScript interpreter built from the ground up using ANTLR.
 
 Exported from [code.google.com/p/jigsaw-library](http://code.google.com/p/jigsaw-library)
