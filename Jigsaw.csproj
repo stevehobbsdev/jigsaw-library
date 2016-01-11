@@ -71,7 +71,6 @@
     <Compile Include="Evaluators\ArithmeticEvaluator.cs" />
     <Compile Include="Evaluators\Evaluator.cs" />
     <Compile Include="Evaluators\JavaScriptEvaluator.cs" />
-    <Compile Include="Sandbox\SimpleVM.cs" />
     <Compile Include="Tests\JavaScriptCompilerTests.cs" />
     <Compile Include="Transformers\TreeTransformer.cs" />
     <Compile Include="Printers\JavaScriptSourcePrinter.cs" />
@@ -118,7 +117,6 @@
     <Compile Include="Sandbox\PythonGrammar.cs" />
     <Compile Include="Sandbox\RTFGrammar.cs" />
     <Compile Include="Sandbox\ScalaGrammar.cs" />
-    <Compile Include="Evaluators\CatEvaluator.cs" />
     <Compile Include="Sandbox\PPGrammar.cs" />
     <Compile Include="Sandbox\ObserverPattern.cs" />
     <Compile Include="Utilities\Primitives.cs" />
@@ -131,7 +129,6 @@
     <Compile Include="Sandbox\SECDMachine.cs" />
     <Compile Include="Theory\SKCalculus.cs" />
     <Compile Include="Tests\ArithmeticTests.cs" />
-    <Compile Include="Tests\CatTests.cs" />
     <Compile Include="Tests\CodeDOMCompilerTests.cs" />
     <Compile Include="Tests\ILTests.cs" />
     <Compile Include="Tests\JsonTests.cs" />

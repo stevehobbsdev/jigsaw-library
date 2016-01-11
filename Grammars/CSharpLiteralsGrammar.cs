@@ -14,7 +14,7 @@ namespace Diggins.Jigsaw
         public static Rule IntSuffix = (U + Opt(L)) | (L + Opt(U));
         public static Rule FloatSuffix = CharSet("FfDdMm");
         
-        new public static Rule Identifier = Node(Opt(MatchChar('@') + SharedGrammar.Identifier);
+        new public static Rule Identifier = Node(Opt(MatchChar('@') + SharedGrammar.Identifier));
         new public static Rule Integer = Node(SharedGrammar.Integer + Opt(IntSuffix));
         new public static Rule Float = Node(SharedGrammar.Float + Opt(FloatSuffix));
 

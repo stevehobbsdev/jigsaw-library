@@ -26,7 +26,6 @@ namespace Diggins.Jigsaw
             SExprTests.Tests();
             JsonTests.Tests();
             UnifierTests.Tests();
-            CatTests.Tests();
             ILTests.Tests();
             LambdaCalculus.Test();
             EmbeddedScheme.Tests();
@@ -36,7 +35,6 @@ namespace Diggins.Jigsaw
             JavaScriptTests.Tests();
             CodeProjectArticleSnippets.Tests();
 
-            SimpleVM.Test();
             Console.WriteLine("And that's it. Press any key to go home ...");
             Console.ReadKey();
         }
