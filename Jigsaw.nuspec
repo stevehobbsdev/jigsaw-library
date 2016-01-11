@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>elkdanger.jigsaw</id>
+    <version>$version$</version>
+    <title>Jigsaw</title>
+    <authors>Steve Hobbs</authors>
+    <owners>Christopher Diggins</owners>
+    <licenseUrl>http://opensource.org/licenses/mit-license.php</licenseUrl>
+    <projectUrl>https://github.com/elkdanger/jigsaw-library</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A fork of the Jigsaw library, originally by C Diggins, hosted at https://code.google.com/p/jigsaw-library/</description>
+    <copyright>Copyright 2016</copyright>
+    <tags>compiler grammar il parser</tags>
+  </metadata>
+</package>
